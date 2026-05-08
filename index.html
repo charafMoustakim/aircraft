@@ -438,18 +438,36 @@
         let csvText = "";
         let loadedSha = "";
 
+        let rawOk = false;
         try {
           const rawResponse = await fetch(`${GITHUB_RAW_CSV_URL}?t=${Date.now()}`, {
             cache: "no-store"
           });
 
-          if (!rawResponse.ok) {
-            throw new Error(`Raw fetch failed (${rawResponse.status})`);
+          if (rawResponse.ok) {
+            const rawText = await rawResponse.text();
+            const firstLine = (rawText.split(/\r?\n/)[0] || "").toLowerCase();
+            const looksLikeCsv = firstLine.includes(",") && (
+              firstLine.includes("aircraft") ||
+              firstLine.includes("a/c") ||
+              firstLine.includes("ac-type")
+            );
+
+            if (rawText.trim().length > 0 && looksLikeCsv) {
+              csvText = rawText;
+              rawOk = true;
+            }
+          }
+        } catch (rawErr) {
+          rawOk = false;
+        }
+
+        if (!rawOk) {
+          const token = githubTokenInput.value.trim();
+          if (!token) {
+            throw new Error("Public raw CSV could not be loaded. Provide a GitHub token to use API fallback.");
           }
 
-          csvText = await rawResponse.text();
-        } catch (rawErr) {
-          const token = githubTokenInput.value.trim();
           const meta = await getCurrentGithubFileMeta(token);
 
           if (meta && meta.content) {
