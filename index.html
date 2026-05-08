@@ -256,6 +256,10 @@
        
       
 
+        <div class="token-row">
+          <input id="githubToken" class="token-input" type="password" placeholder="GitHub Personal Access Token (repo scope)" />
+        </div>
+
         <div class="actions">
           <button id="loadGithubBtn" class="btn btn-secondary" type="button">Load data.csv from GitHub</button>
           <button id="saveGithubBtn" class="btn btn-primary" type="button">Save Weekly Data to GitHub</button>
@@ -460,7 +464,7 @@
         }
 
         if (!rawOk) {
-          const token = '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';
+          const token = (document.getElementById("githubToken")?.value || "").trim();
           if (!token) {
             throw new Error("Public raw CSV could not be loaded. Provide a GitHub token to use API fallback.");
           }
@@ -500,9 +504,12 @@
 
     async function saveWeeklyDataToGitHub() {
       try {
-        const token = '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';
+        const token = (document.getElementById("githubToken")?.value || "").trim();
         if (!token) {
-          throw new Error("GitHub token is required.");
+          throw new Error("Save requires GitHub token (repo contents write permission).");
+        }
+        if (!/^github_pat_|^ghp_/.test(token)) {
+          throw new Error("Token format looks invalid. Use a GitHub PAT with repository contents write access.");
         }
 
         saveStatus.textContent = "Preparing updated CSV...";
