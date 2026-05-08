@@ -263,7 +263,7 @@
     const saveBtn = document.getElementById("saveBtn");
     const saveStatus = document.getElementById("saveStatus");
 
-    const GITHUB_RAW_XLSX_URL = "https://raw.githubusercontent.com/charafMoustakim/aircraft/main/data.xlsx";
+    const GITHUB_RAW_XLSX_URL = "https://github.com/charafMoustakim/aircraft/blob/1a9f556709e562fc98ed4321e59631e3292b03f0/data.xlsx";
     let workbook = null;
     let sheetName = "CycleData";
 
@@ -347,7 +347,7 @@
         saveStatus.textContent = "Loading from GitHub...";
         saveStatus.style.color = "#333";
 
-        const response = await fetch(GITHUB_RAW_XLSX_URL, { cache: "no-store" });
+        const response = await fetch(GITHUB_RAW_XLSX_URL, { cache: "no-store", mode: "cors" });
         if (!response.ok) {
           throw new Error(`Failed to fetch GitHub file (${response.status})`);
         }
@@ -364,8 +364,9 @@
         saveStatus.textContent = "GitHub data loaded successfully.";
         saveStatus.style.color = "#0a7a2f";
       } catch (error) {
-        saveStatus.textContent = `Load error: ${error.message}`;
+        saveStatus.textContent = "CORS blocked when opening via file://. Start a local static server, then reload. Example: `py -m http.server 5500` and open http://localhost:5500/index.html";
         saveStatus.style.color = "#b00020";
+        console.error("Load error:", error);
       }
     }
 
