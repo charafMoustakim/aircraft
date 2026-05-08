@@ -132,6 +132,27 @@
       box-shadow: 0 0 0 2px rgba(227, 6, 19, 0.12);
     }
 
+    .token-row {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .token-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d8d8d8;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .token-input:focus {
+      border-color: var(--brand-red);
+      box-shadow: 0 0 0 2px rgba(227, 6, 19, 0.12);
+    }
+
     .actions {
       margin-top: 14px;
       display: flex;
@@ -170,6 +191,7 @@
       color: #333;
       text-align: right;
       margin-top: 6px;
+      white-space: pre-wrap;
     }
 
     .footer-note {
@@ -231,9 +253,10 @@
           </table>
         </div>
 
+       
         <div class="actions">
-          <button id="loadGithubBtn" class="btn btn-secondary" type="button">Load data.xlsx from GitHub</button>
-          <button id="saveBtn" class="btn btn-primary" type="button">Save Weekly Data (Download)</button>
+          <button id="loadGithubBtn" class="btn btn-secondary" type="button">Load data.csv from GitHub</button>
+          <button id="saveGithubBtn" class="btn btn-primary" type="button">Save Weekly Data to GitHub</button>
           <div id="saveStatus" class="status-msg"></div>
         </div>
 
@@ -242,7 +265,6 @@
     </section>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script>
     const aircraftData = [
       { ac: "CN-NMH", type: "A320" },
@@ -260,12 +282,16 @@
     const tableBody = document.getElementById("aircraftTableBody");
     const totalCount = document.getElementById("totalCount");
     const loadGithubBtn = document.getElementById("loadGithubBtn");
-    const saveBtn = document.getElementById("saveBtn");
+    const saveGithubBtn = document.getElementById("saveGithubBtn");
     const saveStatus = document.getElementById("saveStatus");
 
-    const GITHUB_RAW_XLSX_URL = "https://github.com/charafMoustakim/aircraft/blob/1a9f556709e562fc98ed4321e59631e3292b03f0/data.xlsx";
-    let workbook = null;
-    let sheetName = "CycleData";
+    const OWNER = "charafMoustakim";
+    const REPO = "aircraft";
+    const BRANCH = "main";
+    const FILE_PATH = "data.csv";
+    const GITHUB_CONTENT_API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}?ref=${encodeURIComponent(BRANCH)}`;
+
+    let csvRows = [];
 
     function getWeekNumber(date = new Date()) {
       const tempDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -273,6 +299,235 @@
       tempDate.setUTCDate(tempDate.getUTCDate() + 4 - dayNum);
       const yearStart = new Date(Date.UTC(tempDate.getUTCFullYear(), 0, 1));
       return Math.ceil((((tempDate - yearStart) / 86400000) + 1) / 7);
+    }
+
+    function toNumber(value) {
+      const n = Number(value);
+      return Number.isFinite(n) ? n : null;
+    }
+
+    function parseCSVLine(line) {
+      const out = [];
+      let current = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (ch === "," && !inQuotes) {
+          out.push(current);
+          current = "";
+        } else {
+          current += ch;
+        }
+      }
+      out.push(current);
+      return out;
+    }
+
+    function parseCSV(text) {
+      const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter(l => l.trim() !== "");
+      if (lines.length === 0) return [];
+
+      const headers = parseCSVLine(lines[0]).map(h => h.trim());
+      const rows = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i]);
+        const row = {};
+        headers.forEach((h, idx) => {
+          row[h] = (values[idx] ?? "").trim();
+        });
+        rows.push(row);
+      }
+
+      return rows;
+    }
+
+    function csvEscape(value) {
+      const str = String(value ?? "");
+      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    }
+
+    function toCSV(rows) {
+      const headers = ["Date", "Year", "Week", "Aircraft", "AC-Type", "Number of cycle of the current day"];
+      const lines = [headers.join(",")];
+      rows.forEach((row) => {
+        const line = headers.map((h) => csvEscape(row[h] ?? "")).join(",");
+        lines.push(line);
+      });
+      return lines.join("\n");
+    }
+
+    function extractTotalCycles(rows) {
+      const totals = {};
+      rows.forEach((row) => {
+        const ac = String(row.Aircraft ?? row["A/C"] ?? row.ac ?? "").trim();
+        if (!ac) return;
+
+        const cycleVal = toNumber(
+          row["Number of cycle of the current day"] ??
+          row["Last cycle count"] ??
+          row.cycles
+        );
+
+        const safeCycle = cycleVal ?? 0;
+        totals[ac] = (totals[ac] ?? 0) + safeCycle;
+      });
+
+      return totals;
+    }
+
+    function renderLastCycleCounts(cycleMap) {
+      aircraftData.forEach((item) => {
+        const el = document.querySelector(`[data-last-cycle="${item.ac}"]`);
+        if (!el) return;
+        const value = cycleMap[item.ac];
+        el.textContent = value === null || value === undefined ? "-" : String(value);
+      });
+    }
+
+    function textToBase64(text) {
+      return btoa(unescape(encodeURIComponent(text)));
+    }
+
+    function base64ToUtf8(base64) {
+      const normalized = String(base64 || "").replace(/\n/g, "");
+      return decodeURIComponent(escape(atob(normalized)));
+    }
+
+    async function getCurrentGithubFileMeta(token) {
+      const headers = {
+        Accept: "application/vnd.github+json"
+      };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${GITHUB_CONTENT_API_URL}&t=${Date.now()}`, {
+        headers,
+        cache: "no-store"
+      });
+
+      if (!response.ok) {
+        throw new Error(`GitHub metadata fetch failed (${response.status})`);
+      }
+      return response.json();
+    }
+
+    async function loadFromGitHub() {
+      try {
+        saveStatus.textContent = "Loading latest data.csv from GitHub main...";
+        saveStatus.style.color = "#333";
+
+        const token = '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';
+        const meta = await getCurrentGithubFileMeta(token);
+
+        let csvText = "";
+        if (meta && meta.content) {
+          csvText = base64ToUtf8(meta.content);
+        } else if (meta && meta.download_url) {
+          const response = await fetch(`${meta.download_url}?t=${Date.now()}`, {
+            cache: "no-store"
+          });
+          if (!response.ok) {
+            throw new Error(`Failed to fetch CSV content (${response.status})`);
+          }
+          csvText = await response.text();
+        } else {
+          throw new Error("GitHub response does not include content or download_url");
+        }
+
+        csvRows = parseCSV(csvText);
+
+        const totalCycles = extractTotalCycles(csvRows);
+        renderLastCycleCounts(totalCycles);
+
+        saveStatus.textContent = `Latest main branch CSV loaded (sha: ${String(meta.sha || "").slice(0, 7)})`;
+        saveStatus.style.color = "#0a7a2f";
+      } catch (error) {
+        saveStatus.textContent = `Load error: ${error.message}. If using file://, run local server (py -m http.server 5500).`;
+        saveStatus.style.color = "#b00020";
+      }
+    }
+
+    async function saveWeeklyDataToGitHub() {
+      try {
+        const token = githubTokenInput.value.trim();
+        if (!token) {
+          throw new Error("GitHub token is required.");
+        }
+
+        saveStatus.textContent = "Preparing updated CSV...";
+        saveStatus.style.color = "#333";
+
+        if (!csvRows || csvRows.length === 0) {
+          await loadFromGitHub();
+        }
+
+        const now = new Date();
+        const dateStr = now.toISOString().split("T")[0];
+        const weekNumber = getWeekNumber(now);
+        const year = now.getFullYear();
+
+        const cycleInputs = document.querySelectorAll(".cycle-input");
+        const newRows = aircraftData.map((item, idx) => ({
+          Date: dateStr,
+          Year: String(year),
+          Week: String(weekNumber),
+          Aircraft: item.ac,
+          "AC-Type": item.type,
+          "Number of cycle of the current day": String(Number(cycleInputs[idx].value || 0))
+        }));
+
+        const merged = [...csvRows, ...newRows];
+        const contentCsv = toCSV(merged);
+        const contentBase64 = textToBase64(contentCsv);
+
+        saveStatus.textContent = "Pushing CSV update to GitHub...";
+        const meta = await getCurrentGithubFileMeta(token);
+
+        const putBody = {
+          message: `Update aircraft cycles CSV (${new Date().toISOString()})`,
+          content: contentBase64,
+          sha: meta.sha,
+          branch: BRANCH
+        };
+
+        const putResponse = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/vnd.github+json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(putBody)
+        });
+
+        if (!putResponse.ok) {
+          const errText = await putResponse.text();
+          throw new Error(`GitHub save failed (${putResponse.status}): ${errText}`);
+        }
+
+        csvRows = merged;
+        const totalCycles = extractTotalCycles(csvRows);
+        renderLastCycleCounts(totalCycles);
+
+        saveStatus.textContent = `Saved ${newRows.length} rows to GitHub data.csv successfully.`;
+        saveStatus.style.color = "#0a7a2f";
+      } catch (error) {
+        saveStatus.textContent = `Save error: ${error.message}`;
+        saveStatus.style.color = "#b00020";
+      }
     }
 
     aircraftData.forEach((item, index) => {
@@ -298,138 +553,8 @@
 
     totalCount.textContent = aircraftData.length;
 
-    function toNumber(value) {
-      const n = Number(value);
-      return Number.isFinite(n) ? n : null;
-    }
-
-    function extractLatestCycles(rows) {
-      const latest = {};
-      rows.forEach((row, idx) => {
-        const ac = String(row.Aircraft ?? row["A/C"] ?? row.ac ?? "").trim();
-        if (!ac) return;
-
-        const cycleVal = toNumber(
-          row["Number of cycle of the current day"] ??
-          row["Last cycle count"] ??
-          row.cycles
-        );
-
-        const weekVal = toNumber(row.Week);
-        const yearVal = toNumber(row.Year);
-        const order = (yearVal ?? 0) * 100 + (weekVal ?? 0) + idx / 10000;
-
-        if (!latest[ac]) {
-          latest[ac] = { cycle: cycleVal, order };
-        } else if (order >= latest[ac].order) {
-          latest[ac] = { cycle: cycleVal, order };
-        }
-      });
-
-      const result = {};
-      Object.keys(latest).forEach((ac) => {
-        result[ac] = latest[ac].cycle;
-      });
-      return result;
-    }
-
-    function renderLastCycleCounts(cycleMap) {
-      aircraftData.forEach((item) => {
-        const el = document.querySelector(`[data-last-cycle="${item.ac}"]`);
-        if (!el) return;
-        const value = cycleMap[item.ac];
-        el.textContent = value === null || value === undefined ? "-" : String(value);
-      });
-    }
-
-    async function loadFromGitHub() {
-      try {
-        saveStatus.textContent = "Loading from GitHub...";
-        saveStatus.style.color = "#333";
-
-        const response = await fetch(GITHUB_RAW_XLSX_URL, { cache: "no-store", mode: "cors" });
-        if (!response.ok) {
-          throw new Error(`Failed to fetch GitHub file (${response.status})`);
-        }
-
-        const buffer = await response.arrayBuffer();
-        workbook = XLSX.read(buffer, { type: "array" });
-        sheetName = workbook.SheetNames[0] || "CycleData";
-
-        const sheet = workbook.Sheets[sheetName];
-        const rows = sheet ? XLSX.utils.sheet_to_json(sheet) : [];
-        const lastCycles = extractLatestCycles(rows);
-        renderLastCycleCounts(lastCycles);
-
-        saveStatus.textContent = "GitHub data loaded successfully.";
-        saveStatus.style.color = "#0a7a2f";
-      } catch (error) {
-        saveStatus.textContent = "CORS blocked when opening via file://. Start a local static server, then reload. Example: `py -m http.server 5500` and open http://localhost:5500/index.html";
-        saveStatus.style.color = "#b00020";
-        console.error("Load error:", error);
-      }
-    }
-
-    async function saveWeeklyData() {
-      try {
-        saveStatus.textContent = "Preparing Excel download...";
-        saveStatus.style.color = "#333";
-
-        if (!workbook) {
-          workbook = XLSX.utils.book_new();
-          sheetName = "CycleData";
-          workbook.Sheets[sheetName] = XLSX.utils.json_to_sheet([]);
-          workbook.SheetNames = [sheetName];
-        }
-
-        const existingSheet = workbook.Sheets[sheetName];
-        const existingData = existingSheet ? XLSX.utils.sheet_to_json(existingSheet) : [];
-
-        const now = new Date();
-        const dateStr = now.toISOString().split("T")[0];
-        const weekNumber = getWeekNumber(now);
-        const year = now.getFullYear();
-
-        const cycleInputs = document.querySelectorAll(".cycle-input");
-        const newRows = aircraftData.map((item, idx) => ({
-          Date: dateStr,
-          Year: year,
-          Week: weekNumber,
-          Aircraft: item.ac,
-          "AC-Type": item.type,
-          "Number of cycle of the current day": Number(cycleInputs[idx].value || 0)
-        }));
-
-        const merged = [...existingData, ...newRows];
-        workbook.Sheets[sheetName] = XLSX.utils.json_to_sheet(merged);
-        if (!workbook.SheetNames.includes(sheetName)) {
-          workbook.SheetNames.push(sheetName);
-        }
-
-        const lastCycles = extractLatestCycles(merged);
-        renderLastCycleCounts(lastCycles);
-
-        const outArray = XLSX.write(workbook, { type: "array", bookType: "xlsx" });
-        const blob = new Blob([outArray], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "data.xlsx";
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(link.href);
-
-        saveStatus.textContent = `Saved ${newRows.length} rows. Downloaded updated data.xlsx`;
-        saveStatus.style.color = "#0a7a2f";
-      } catch (error) {
-        saveStatus.textContent = `Error: ${error.message}`;
-        saveStatus.style.color = "#b00020";
-      }
-    }
-
     loadGithubBtn.addEventListener("click", loadFromGitHub);
-    saveBtn.addEventListener("click", saveWeeklyData);
+    saveGithubBtn.addEventListener("click", saveWeeklyDataToGitHub);
 
     loadFromGitHub();
   </script>
