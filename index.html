@@ -553,6 +553,12 @@
 
         if (!putResponse.ok) {
           const errText = await putResponse.text();
+          if (putResponse.status === 401) {
+            throw new Error("Unauthorized (401): invalid/expired token.");
+          }
+          if (putResponse.status === 403) {
+            throw new Error("Forbidden (403): token lacks repository contents write permission.");
+          }
           throw new Error(`GitHub save failed (${putResponse.status}): ${errText}`);
         }
 
