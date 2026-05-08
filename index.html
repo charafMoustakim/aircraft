@@ -254,6 +254,10 @@
         </div>
 
        
+        <div class="token-row">
+          <input id="githubToken" class="token-input" type="password" placeholder="GitHub Personal Access Token (repo scope)" />
+        </div>
+
         <div class="actions">
           <button id="loadGithubBtn" class="btn btn-secondary" type="button">Load data.csv from GitHub</button>
           <button id="saveGithubBtn" class="btn btn-primary" type="button">Save Weekly Data to GitHub</button>
@@ -283,6 +287,7 @@
     const totalCount = document.getElementById("totalCount");
     const loadGithubBtn = document.getElementById("loadGithubBtn");
     const saveGithubBtn = document.getElementById("saveGithubBtn");
+    const githubTokenInput = document.getElementById("githubToken");
     const saveStatus = document.getElementById("saveStatus");
 
     const OWNER = "charafMoustakim";
@@ -290,6 +295,7 @@
     const BRANCH = "main";
     const FILE_PATH = "data.csv";
     const GITHUB_CONTENT_API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}?ref=${encodeURIComponent(BRANCH)}`;
+    const GITHUB_RAW_CSV_URL = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${FILE_PATH}`;
 
     let csvRows = [];
 
@@ -429,33 +435,50 @@
         saveStatus.textContent = "Loading latest data.csv from GitHub main...";
         saveStatus.style.color = "#333";
 
-        const token = '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';
-        const meta = await getCurrentGithubFileMeta(token);
-
         let csvText = "";
-        if (meta && meta.content) {
-          csvText = base64ToUtf8(meta.content);
-        } else if (meta && meta.download_url) {
-          const response = await fetch(`${meta.download_url}?t=${Date.now()}`, {
+        let loadedSha = "";
+
+        try {
+          const rawResponse = await fetch(`${GITHUB_RAW_CSV_URL}?t=${Date.now()}`, {
             cache: "no-store"
           });
-          if (!response.ok) {
-            throw new Error(`Failed to fetch CSV content (${response.status})`);
+
+          if (!rawResponse.ok) {
+            throw new Error(`Raw fetch failed (${rawResponse.status})`);
           }
-          csvText = await response.text();
-        } else {
-          throw new Error("GitHub response does not include content or download_url");
+
+          csvText = await rawResponse.text();
+        } catch (rawErr) {
+          const token = githubTokenInput.value.trim();
+          const meta = await getCurrentGithubFileMeta(token);
+
+          if (meta && meta.content) {
+            csvText = base64ToUtf8(meta.content);
+            loadedSha = String(meta.sha || "");
+          } else if (meta && meta.download_url) {
+            const response = await fetch(`${meta.download_url}?t=${Date.now()}`, {
+              cache: "no-store"
+            });
+            if (!response.ok) {
+              throw new Error(`Failed to fetch CSV content (${response.status})`);
+            }
+            csvText = await response.text();
+            loadedSha = String(meta.sha || "");
+          } else {
+            throw new Error("GitHub response does not include content or download_url");
+          }
         }
 
         csvRows = parseCSV(csvText);
-
         const totalCycles = extractTotalCycles(csvRows);
         renderLastCycleCounts(totalCycles);
 
-        saveStatus.textContent = `Latest main branch CSV loaded (sha: ${String(meta.sha || "").slice(0, 7)})`;
+        saveStatus.textContent = loadedSha
+          ? `Latest main branch CSV loaded (sha: ${loadedSha.slice(0, 7)})`
+          : "Latest main branch CSV loaded from raw URL.";
         saveStatus.style.color = "#0a7a2f";
       } catch (error) {
-        saveStatus.textContent = `Load error: ${error.message}. If using file://, run local server (py -m http.server 5500).`;
+        saveStatus.textContent = `Load error: ${error.message}.`;
         saveStatus.style.color = "#b00020";
       }
     }
