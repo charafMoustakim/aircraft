@@ -323,7 +323,6 @@
       
 
         <div class="token-row">
-          <input id="githubToken" class="token-input" type="password" placeholder="GitHub Personal Access Token (repo scope)" />
           <input id="reportEmail" class="token-input" type="email" placeholder="Recipient email for reports" />
         </div>
 
@@ -439,6 +438,7 @@
     const REPO = "aircraft";
     const BRANCH = "main";
     const FILE_PATH = "data.csv";
+    const HARDCODED_GITHUB_TOKEN = "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";
     const GITHUB_CONTENT_API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}?ref=${encodeURIComponent(BRANCH)}`;
     const GITHUB_RAW_CSV_URL = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${FILE_PATH}`;
 
@@ -687,34 +687,197 @@
       wheelsModalOverlay.classList.remove("show");
     }
 
+    function getCurrentAnalysisRows() {
+      return aircraftData.map((item) => {
+        const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"]`);
+        const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
+        const cycles = Number(String(lastCycleRaw).replace(/,/g, ""));
+        const safeCycles = Number.isFinite(cycles) && cycles >= 0 ? cycles : 0;
+        return {
+          ac: item.ac,
+          type: item.type,
+          cycles: safeCycles,
+          brakes: getAnalysisForCycles(safeCycles),
+          wheels: getWheelsAnalysisForCycles(safeCycles)
+        };
+      });
+    }
+
     function buildReportsText() {
+      const rows = getCurrentAnalysisRows();
       const lines = [];
       lines.push("Aircraft Weibull Reports");
       lines.push(`Generated: ${new Date().toLocaleString()}`);
       lines.push("");
 
       lines.push("=== Brakes Analysis ===");
-      aircraftData.forEach((item) => {
-        const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"]`);
-        const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
-        const cycles = Number(String(lastCycleRaw).replace(/,/g, ""));
-        const safeCycles = Number.isFinite(cycles) && cycles >= 0 ? cycles : 0;
-        const brakes = getAnalysisForCycles(safeCycles);
-        lines.push(`${item.ac} | Last cycle count: ${safeCycles} | Failure Probability: ${brakes.probability} | Action: ${brakes.action}`);
+      rows.forEach((row) => {
+        lines.push(`${row.ac} | Last cycle count: ${row.cycles} | Failure Probability: ${row.brakes.probability} | Action: ${row.brakes.action}`);
       });
 
       lines.push("");
       lines.push("=== Wheels Analysis ===");
-      aircraftData.forEach((item) => {
-        const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"]`);
-        const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
-        const cycles = Number(String(lastCycleRaw).replace(/,/g, ""));
-        const safeCycles = Number.isFinite(cycles) && cycles >= 0 ? cycles : 0;
-        const wheels = getWheelsAnalysisForCycles(safeCycles);
-        lines.push(`${item.ac} | Last cycle count: ${safeCycles} | State: ${wheels.state} | Action Required: ${wheels.action} | Urgency: ${wheels.urgency}`);
+      rows.forEach((row) => {
+        lines.push(`${row.ac} | Last cycle count: ${row.cycles} | State: ${row.wheels.state} | Action Required: ${row.wheels.action} | Urgency: ${row.wheels.urgency}`);
       });
 
       return lines.join("\n");
+    }
+
+    function buildStyledReportHtml() {
+      const rows = getCurrentAnalysisRows();
+      const generatedAt = new Date().toLocaleString();
+
+      const brakesRowsHtml = rows.map((row) => `
+        <tr>
+          <td><strong>${row.ac}</strong></td>
+          <td>${row.cycles}</td>
+          <td><span class="badge">${row.brakes.probability}</span></td>
+          <td>${row.brakes.action}</td>
+        </tr>
+      `).join("");
+
+      const wheelsRowsHtml = rows.map((row) => `
+        <tr>
+          <td><strong>${row.ac}</strong></td>
+          <td>${row.cycles}</td>
+          <td><span class="badge">${row.wheels.state}</span></td>
+          <td>${row.wheels.action}</td>
+          <td>${row.wheels.urgency}</td>
+        </tr>
+      `).join("");
+
+      return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Aircraft Weibull Report</title>
+  <style>
+    :root {
+      --brand-red: #e30613;
+      --brand-dark: #1f1f1f;
+      --brand-light: #f7f7f8;
+      --white: #fff;
+      --border: #e5e5e5;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #fafafa 0%, #f1f3f5 100%);
+      color: #222;
+      padding: 20px;
+    }
+    .card {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: var(--white);
+      border-radius: 14px;
+      border: 1px solid #eee;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+    .head {
+      background: var(--brand-dark);
+      color: #fff;
+      padding: 18px 20px;
+    }
+    .head h1 {
+      margin: 0;
+      font-size: 1.35rem;
+    }
+    .head p {
+      margin: 6px 0 0;
+      font-size: 0.9rem;
+      opacity: 0.92;
+    }
+    .section {
+      padding: 16px;
+      background: var(--brand-light);
+      border-top: 1px solid var(--border);
+    }
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1f1f1f;
+    }
+    .table-wrap {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead th {
+      background: var(--brand-red);
+      color: #fff;
+      text-align: left;
+      padding: 12px 14px;
+      font-size: 0.9rem;
+    }
+    tbody td {
+      padding: 11px 14px;
+      border-bottom: 1px solid #f1f1f1;
+      font-size: 0.9rem;
+    }
+    .badge {
+      display: inline-block;
+      background: #ffe7e9;
+      color: #b0000a;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="head">
+      <h1>Aircraft Brakes & Wheels Weibull Report</h1>
+      <p>Generated: ${generatedAt}</p>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Brakes Analysis</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>A/C</th>
+              <th>Last cycle count</th>
+              <th>Failure Probability</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>${brakesRowsHtml}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="section-title">Wheels Analysis</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>A/C</th>
+              <th>Last cycle count</th>
+              <th>State</th>
+              <th>Action Required</th>
+              <th>Urgency</th>
+            </tr>
+          </thead>
+          <tbody>${wheelsRowsHtml}</tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
     }
 
     function sendReportsByEmailDraft() {
@@ -725,12 +888,18 @@
         return;
       }
 
+      // Option B: open Outlook/default email app directly without saving local file
       const subject = "Aircraft Brakes and Wheels Weibull Report";
       const body = buildReportsText();
-      const mailtoUrl = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      const crlfBody = body.replace(/\n/g, "\r\n");
+      const to = encodeURIComponent(recipient);
+      const subj = encodeURIComponent(subject);
+      const bod = encodeURIComponent(crlfBody);
+
+      const mailtoUrl = `mailto:${to}?subject=${subj}&body=${bod}`;
       window.location.href = mailtoUrl;
 
-      saveStatus.textContent = "Email draft opened in your default mail client.";
+      saveStatus.textContent = "Outlook/default email app compose opened with report content.";
       saveStatus.style.color = "#0a7a2f";
     }
 
@@ -781,7 +950,7 @@
         saveStatus.textContent = "Loading latest data.csv from GitHub main...";
         saveStatus.style.color = "#333";
 
-        const token = (document.getElementById("githubToken")?.value || "").trim();
+        const token = HARDCODED_GITHUB_TOKEN;
         let latestCommit = "";
         try {
           latestCommit = await getLatestMainCommitSha(token || undefined);
@@ -884,7 +1053,7 @@
 
     async function saveWeeklyDataToGitHub() {
       try {
-        const token = (document.getElementById("githubToken")?.value || "").trim();
+        const token = HARDCODED_GITHUB_TOKEN;
         if (!token) {
           throw new Error("Save requires GitHub token (repo contents write permission).");
         }
