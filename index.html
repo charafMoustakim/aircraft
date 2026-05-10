@@ -201,6 +201,73 @@
       text-align: right;
     }
 
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(1000px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+      border: 1px solid #e8e8e8;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      background: var(--brand-red);
+      color: #fff;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 800;
+    }
+
+    .modal-close {
+      border: none;
+      background: #fff;
+      color: var(--brand-red);
+      font-weight: 800;
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 14px 16px 18px;
+    }
+
+    .analysis-table-wrap {
+      border: 1px solid #ececec;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .analysis-note {
+      font-size: 0.86rem;
+      color: #555;
+      line-height: 1.4;
+    }
+
     @media (max-width: 640px) {
       .hero-head h1 {
         font-size: 1.25rem;
@@ -234,8 +301,7 @@
   <main class="container">
     <section class="hero">
       <div class="hero-head">
-        <h1>Aircraft Data</h1>
-        <p>Fleet reference table inspired by airline booking portal UI style.</p>
+        <h1>Preventive maintenance of brakes and wheels for the A320</h1>
       </div>
 
       <div class="content">
@@ -258,11 +324,16 @@
 
         <div class="token-row">
           <input id="githubToken" class="token-input" type="password" placeholder="GitHub Personal Access Token (repo scope)" />
+          <input id="reportEmail" class="token-input" type="email" placeholder="Recipient email for reports" />
         </div>
 
         <div class="actions">
           <button id="loadGithubBtn" class="btn btn-secondary" type="button">Load data.csv from GitHub</button>
           <button id="saveGithubBtn" class="btn btn-primary" type="button">Save Weekly Data to GitHub</button>
+          <button id="analyzeBtn" class="btn btn-secondary" type="button">analyze brakes using weibull</button>
+          <button id="analyzeWheelsBtn" class="btn btn-secondary" type="button">Analyze wheels using weibull</button>
+          <button id="resetBtn" class="btn btn-secondary" type="button">Reset</button>
+          <button id="sendReportsBtn" class="btn btn-secondary" type="button">Send Reports</button>
           <div id="saveStatus" class="status-msg"></div>
         </div>
 
@@ -270,6 +341,68 @@
       </div>
     </section>
   </main>
+
+  <div id="analysisModalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="analysisModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="analysisModalTitle" class="modal-title">Aircraft Analysis</h2>
+        <button id="analysisModalCloseBtn" class="modal-close" type="button" aria-label="Close analysis popup">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="analysis-table-wrap">
+          <table aria-label="Aircraft analysis results">
+            <thead>
+              <tr>
+                <th>A/C</th>
+                <th>Last cycle count</th>
+                <th>Failure Probability</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="analysisTableBody"></tbody>
+          </table>
+        </div>
+        <div class="analysis-note">
+          Rules used:
+          0–650 cycles → < 5% (No action needed),
+          650–900 cycles → 5%–10% (Monitor normally),
+          900–1,200 cycles → 10%–20% (Inspect at next maintenance),
+          1,200–1,500 cycles → 20%–40% (Schedule replacement soon),
+          > 1,500 cycles → > 40% (Replace immediately).
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="wheelsModalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="wheelsModalTitle">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="wheelsModalTitle" class="modal-title">Wheel Weibull Analysis</h2>
+        <button id="wheelsModalCloseBtn" class="modal-close" type="button" aria-label="Close wheels analysis popup">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="analysis-table-wrap">
+          <table aria-label="Aircraft wheels analysis results">
+            <thead>
+              <tr>
+                <th>A/C</th>
+                <th>Last cycle count</th>
+                <th>State</th>
+                <th>Action Required</th>
+                <th>Urgency</th>
+              </tr>
+            </thead>
+            <tbody id="wheelsAnalysisTableBody"></tbody>
+          </table>
+        </div>
+        <div class="analysis-note">
+          Wheel rules used:
+          0–250 GOOD, 250–280 MONITOR, 280–300 ATTENTION, 300–320 WARNING,
+          320–350 CRITICAL, 350–370 IMMINENT, 370+ FAILED.
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script>
     const aircraftData = [
@@ -289,7 +422,18 @@
     const totalCount = document.getElementById("totalCount");
     const loadGithubBtn = document.getElementById("loadGithubBtn");
     const saveGithubBtn = document.getElementById("saveGithubBtn");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const analyzeWheelsBtn = document.getElementById("analyzeWheelsBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const sendReportsBtn = document.getElementById("sendReportsBtn");
+    const reportEmailInput = document.getElementById("reportEmail");
     const saveStatus = document.getElementById("saveStatus");
+    const analysisModalOverlay = document.getElementById("analysisModalOverlay");
+    const analysisModalCloseBtn = document.getElementById("analysisModalCloseBtn");
+    const analysisTableBody = document.getElementById("analysisTableBody");
+    const wheelsModalOverlay = document.getElementById("wheelsModalOverlay");
+    const wheelsModalCloseBtn = document.getElementById("wheelsModalCloseBtn");
+    const wheelsAnalysisTableBody = document.getElementById("wheelsAnalysisTableBody");
 
     const OWNER = "charafMoustakim";
     const REPO = "aircraft";
@@ -415,6 +559,179 @@
         const value = cycleMap[normalizeAircraft(item.ac)];
         el.textContent = value === null || value === undefined ? "0" : String(value);
       });
+    }
+
+    function resetCurrentDayCycleInputs() {
+      const cycleInputs = document.querySelectorAll(".cycle-input");
+      cycleInputs.forEach((input) => {
+        input.value = "0";
+      });
+    }
+
+    function resetLastCycleCountsToZero() {
+      aircraftData.forEach((item) => {
+        const el = document.querySelector(`[data-last-cycle="${item.ac}"]`);
+        if (el) el.textContent = "0";
+      });
+
+      if (Array.isArray(csvRows) && csvRows.length) {
+        csvRows = csvRows.map((row) => {
+          const ac = normalizeAircraft(row.Aircraft ?? row["A/C"] ?? row.ac ?? "");
+          if (!ac) return row;
+
+          const updatedRow = { ...row };
+          if ("Number of cycle of the current day" in updatedRow) {
+            updatedRow["Number of cycle of the current day"] = "0";
+          }
+          if ("Last cycle count" in updatedRow) {
+            updatedRow["Last cycle count"] = "0";
+          }
+          return updatedRow;
+        });
+      }
+
+      saveStatus.textContent = "Last cycle count reset to 0 for all aircraft.";
+      saveStatus.style.color = "#333";
+    }
+
+    function getAnalysisForCycles(cycles) {
+      if (cycles <= 650) {
+        return { probability: "< 5%", action: "No action needed" };
+      }
+      if (cycles <= 900) {
+        return { probability: "5% - 10%", action: "Monitor normally" };
+      }
+      if (cycles <= 1200) {
+        return { probability: "10% - 20%", action: "Inspect at next maintenance" };
+      }
+      if (cycles <= 1500) {
+        return { probability: "20% - 40%", action: "Schedule replacement soon" };
+      }
+      return { probability: "> 40%", action: "Replace immediately" };
+    }
+
+    function openAnalysisModal() {
+      analysisTableBody.innerHTML = "";
+
+      aircraftData.forEach((item) => {
+        const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"]`);
+        const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
+        const parsed = Number(String(lastCycleRaw).replace(/,/g, ""));
+        const safeCycles = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+        const analysis = getAnalysisForCycles(safeCycles);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${item.ac}</strong></td>
+          <td>${safeCycles}</td>
+          <td><span class="badge">${analysis.probability}</span></td>
+          <td>${analysis.action}</td>
+        `;
+        analysisTableBody.appendChild(tr);
+      });
+
+      analysisModalOverlay.classList.add("show");
+    }
+
+    function closeAnalysisModal() {
+      analysisModalOverlay.classList.remove("show");
+    }
+
+    function getWheelsAnalysisForCycles(cycles) {
+      if (cycles < 250) {
+        return { state: "GOOD", action: "No action needed", urgency: "None" };
+      }
+      if (cycles < 280) {
+        return { state: "MONITOR", action: "Check every inspection", urgency: "Low" };
+      }
+      if (cycles < 300) {
+        return { state: "ATTENTION", action: "Increased monitoring", urgency: "Medium" };
+      }
+      if (cycles < 320) {
+        return { state: "WARNING", action: "Plan replacement soon", urgency: "High" };
+      }
+      if (cycles < 350) {
+        return { state: "CRITICAL", action: "Replace within 50 cycles", urgency: "Urgent" };
+      }
+      if (cycles < 370) {
+        return { state: "IMMINENT", action: "Replace immediately", urgency: "Critical" };
+      }
+      return { state: "FAILED", action: "Overdue - Replace NOW", urgency: "Emergency" };
+    }
+
+    function openWheelsAnalysisModal() {
+      wheelsAnalysisTableBody.innerHTML = "";
+
+      aircraftData.forEach((item) => {
+        const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"]`);
+        const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
+        const parsed = Number(String(lastCycleRaw).replace(/,/g, ""));
+        const safeCycles = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+        const analysis = getWheelsAnalysisForCycles(safeCycles);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong>${item.ac}</strong></td>
+          <td>${safeCycles}</td>
+          <td><span class="badge">${analysis.state}</span></td>
+          <td>${analysis.action}</td>
+          <td>${analysis.urgency}</td>
+        `;
+        wheelsAnalysisTableBody.appendChild(tr);
+      });
+
+      wheelsModalOverlay.classList.add("show");
+    }
+
+    function closeWheelsAnalysisModal() {
+      wheelsModalOverlay.classList.remove("show");
+    }
+
+    function buildReportsText() {
+      const lines = [];
+      lines.push("Aircraft Weibull Reports");
+      lines.push(`Generated: ${new Date().toLocaleString()}`);
+      lines.push("");
+
+      lines.push("=== Brakes Analysis ===");
+      aircraftData.forEach((item) => {
+        const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"]`);
+        const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
+        const cycles = Number(String(lastCycleRaw).replace(/,/g, ""));
+        const safeCycles = Number.isFinite(cycles) && cycles >= 0 ? cycles : 0;
+        const brakes = getAnalysisForCycles(safeCycles);
+        lines.push(`${item.ac} | Last cycle count: ${safeCycles} | Failure Probability: ${brakes.probability} | Action: ${brakes.action}`);
+      });
+
+      lines.push("");
+      lines.push("=== Wheels Analysis ===");
+      aircraftData.forEach((item) => {
+        const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"]`);
+        const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
+        const cycles = Number(String(lastCycleRaw).replace(/,/g, ""));
+        const safeCycles = Number.isFinite(cycles) && cycles >= 0 ? cycles : 0;
+        const wheels = getWheelsAnalysisForCycles(safeCycles);
+        lines.push(`${item.ac} | Last cycle count: ${safeCycles} | State: ${wheels.state} | Action Required: ${wheels.action} | Urgency: ${wheels.urgency}`);
+      });
+
+      return lines.join("\n");
+    }
+
+    function sendReportsByEmailDraft() {
+      const recipient = (reportEmailInput?.value || "").trim();
+      if (!recipient) {
+        saveStatus.textContent = "Enter recipient email before sending reports.";
+        saveStatus.style.color = "#b00020";
+        return;
+      }
+
+      const subject = "Aircraft Brakes and Wheels Weibull Report";
+      const body = buildReportsText();
+      const mailtoUrl = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      window.location.href = mailtoUrl;
+
+      saveStatus.textContent = "Email draft opened in your default mail client.";
+      saveStatus.style.color = "#0a7a2f";
     }
 
     function textToBase64(text) {
@@ -556,6 +873,9 @@
         const commitInfo = latestCommit ? ` | latest main commit: ${latestCommit.slice(0, 7)}` : "";
         saveStatus.textContent = `Latest CSV loaded from ${sourceUsed || "public source"} (${shaInfo}${commitInfo})`;
         saveStatus.style.color = "#0a7a2f";
+
+        resetCurrentDayCycleInputs();
+        alert('Load completed. "Number of cycle of the current day" values were reset to 0.');
       } catch (error) {
         saveStatus.textContent = `Load error: ${error.message}.`;
         saveStatus.style.color = "#b00020";
@@ -666,6 +986,31 @@
 
     loadGithubBtn.addEventListener("click", loadFromGitHub);
     saveGithubBtn.addEventListener("click", saveWeeklyDataToGitHub);
+    analyzeBtn.addEventListener("click", openAnalysisModal);
+    analyzeWheelsBtn.addEventListener("click", openWheelsAnalysisModal);
+    resetBtn.addEventListener("click", resetLastCycleCountsToZero);
+    sendReportsBtn.addEventListener("click", sendReportsByEmailDraft);
+    analysisModalCloseBtn.addEventListener("click", closeAnalysisModal);
+    wheelsModalCloseBtn.addEventListener("click", closeWheelsAnalysisModal);
+
+    analysisModalOverlay.addEventListener("click", (event) => {
+      if (event.target === analysisModalOverlay) {
+        closeAnalysisModal();
+      }
+    });
+
+    wheelsModalOverlay.addEventListener("click", (event) => {
+      if (event.target === wheelsModalOverlay) {
+        closeWheelsAnalysisModal();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeAnalysisModal();
+        closeWheelsAnalysisModal();
+      }
+    });
 
     loadFromGitHub();
   </script>
