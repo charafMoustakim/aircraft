@@ -323,6 +323,7 @@
       
 
         <div class="token-row">
+          <input id="githubToken" class="token-input" type="password" placeholder="GitHub Personal Access Token (repo scope)" />
           <input id="reportEmail" class="token-input" type="email" placeholder="Recipient email for reports" />
         </div>
 
@@ -438,7 +439,6 @@
     const REPO = "aircraft";
     const BRANCH = "main";
     const FILE_PATH = "data.csv";
-    const HARDCODED_GITHUB_TOKEN = "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";
     const GITHUB_CONTENT_API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}?ref=${encodeURIComponent(BRANCH)}`;
     const GITHUB_RAW_CSV_URL = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${FILE_PATH}`;
 
@@ -950,7 +950,7 @@
         saveStatus.textContent = "Loading latest data.csv from GitHub main...";
         saveStatus.style.color = "#333";
 
-        const token = HARDCODED_GITHUB_TOKEN;
+        const token = (document.getElementById("githubToken")?.value || "").trim();
         let latestCommit = "";
         try {
           latestCommit = await getLatestMainCommitSha(token || undefined);
@@ -1053,7 +1053,7 @@
 
     async function saveWeeklyDataToGitHub() {
       try {
-        const token = HARDCODED_GITHUB_TOKEN;
+        const token = (document.getElementById("githubToken")?.value || "").trim();
         if (!token) {
           throw new Error("Save requires GitHub token (repo contents write permission).");
         }
