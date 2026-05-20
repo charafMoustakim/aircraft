@@ -36,9 +36,9 @@
     }
 
     .container {
-      max-width: 980px;
+      max-width: 1280px;
       margin: 28px auto;
-      padding: 0 16px;
+      padding: 0 12px;
     }
 
     .hero {
@@ -82,21 +82,24 @@
     table {
       width: 100%;
       border-collapse: collapse;
+      table-layout: fixed;
     }
 
     thead th {
       background: var(--brand-red);
       color: var(--white);
       text-align: left;
-      padding: 14px 16px;
-      font-size: 0.95rem;
-      letter-spacing: 0.2px;
+      padding: 10px 8px;
+      font-size: 0.8rem;
+      letter-spacing: 0.1px;
+      line-height: 1.15;
+      word-break: break-word;
     }
 
     tbody td {
-      padding: 13px 16px;
+      padding: 8px 8px;
       border-bottom: 1px solid #f0f0f0;
-      font-size: 0.95rem;
+      font-size: 0.82rem;
     }
 
     tbody tr:nth-child(even) {
@@ -111,19 +114,19 @@
       display: inline-block;
       background: #ffe7e9;
       color: #b0000a;
-      padding: 4px 10px;
+      padding: 3px 8px;
       border-radius: 999px;
       font-weight: 700;
-      font-size: 0.82rem;
+      font-size: 0.75rem;
     }
 
     .cycle-input {
       width: 100%;
-      min-width: 120px;
-      padding: 8px 10px;
+      min-width: 72px;
+      padding: 6px 7px;
       border: 1px solid #d8d8d8;
-      border-radius: 8px;
-      font-size: 0.9rem;
+      border-radius: 7px;
+      font-size: 0.82rem;
       outline: none;
     }
 
@@ -309,10 +312,16 @@
           <table aria-label="Aircraft Data">
             <thead>
               <tr>
-                <th style="width: 30%;">A/C</th>
-                <th style="width: 18%;">AC-Type</th>
-                <th style="width: 20%;">Last cycle count</th>
-                <th>Number of cycle of the current day</th>
+                <th style="width: 7%;">A/C</th>
+                <th style="width: 7%;">AC-Type</th>
+                <th style="width: 8%;">Last cycle count Wheel 1</th>
+                <th style="width: 8%;">Last cycle count Wheel 2</th>
+                <th style="width: 8%;">Last cycle count Wheel 3</th>
+                <th style="width: 8%;">Last cycle count Wheel 4</th>
+                <th style="width: 13.5%;">Number of cycle of the current day Wheel 1</th>
+                <th style="width: 13.5%;">Number of cycle of the current day Wheel 2</th>
+                <th style="width: 13.5%;">Number of cycle of the current day Wheel 3</th>
+                <th style="width: 13.5%;">Number of cycle of the current day Wheel 4</th>
               </tr>
             </thead>
             <tbody id="aircraftTableBody"></tbody>
@@ -354,9 +363,11 @@
             <thead>
               <tr>
                 <th>A/C</th>
+                <th>Wheel</th>
                 <th>Last cycle count</th>
                 <th>Failure Probability</th>
                 <th>Action</th>
+                <th>Estimated removal date</th>
               </tr>
             </thead>
             <tbody id="analysisTableBody"></tbody>
@@ -386,10 +397,12 @@
             <thead>
               <tr>
                 <th>A/C</th>
+                <th>Wheel</th>
                 <th>Last cycle count</th>
                 <th>State</th>
                 <th>Action Required</th>
                 <th>Urgency</th>
+                <th>Estimated removal date</th>
               </tr>
             </thead>
             <tbody id="wheelsAnalysisTableBody"></tbody>
@@ -444,6 +457,7 @@
 
     let csvRows = [];
     let lastLoadedCsvFingerprint = "";
+    const WHEEL_NUMBERS = [1, 2, 3, 4];
 
     function getWeekNumber(date = new Date()) {
       const tempDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -518,8 +532,19 @@
       return str;
     }
 
+    function wheelLastKey(wheel) {
+      return `Last cycle count Wheel ${wheel}`;
+    }
+
+    function wheelCurrentKey(wheel) {
+      return `Number of cycle of the current day Wheel ${wheel}`;
+    }
+
     function toCSV(rows) {
-      const headers = ["Date", "Year", "Week", "Aircraft", "AC-Type", "Number of cycle of the current day"];
+      const headers = ["Date", "Year", "Week", "Aircraft", "AC-Type"];
+      WHEEL_NUMBERS.forEach((wheel) => headers.push(wheelLastKey(wheel)));
+      WHEEL_NUMBERS.forEach((wheel) => headers.push(wheelCurrentKey(wheel)));
+
       const lines = [headers.join(",")];
       rows.forEach((row) => {
         const line = headers.map((h) => csvEscape(row[h] ?? "")).join(",");
@@ -528,25 +553,27 @@
       return lines.join("\n");
     }
 
-    function extractTotalCycles(rows) {
+    function extractWheelCycleTotals(rows) {
       const totals = {};
 
       aircraftData.forEach((item) => {
-        totals[normalizeAircraft(item.ac)] = 0;
+        totals[normalizeAircraft(item.ac)] = { 1: 0, 2: 0, 3: 0, 4: 0 };
       });
 
       rows.forEach((row) => {
         const ac = normalizeAircraft(row.Aircraft ?? row["A/C"] ?? row.ac ?? "");
         if (!ac || !(ac in totals)) return;
 
-        const cycleVal = parseCycleValue(
-          row["Number of cycle of the current day"] ??
-          row["Last cycle count"] ??
-          row.cycles
-        );
+        WHEEL_NUMBERS.forEach((wheel) => {
+          const cycleVal = parseCycleValue(
+            row[wheelCurrentKey(wheel)] ??
+            row[wheelLastKey(wheel)] ??
+            null
+          );
 
-        if (cycleVal === null) return;
-        totals[ac] += cycleVal;
+          if (cycleVal === null) return;
+          totals[ac][wheel] += cycleVal;
+        });
       });
 
       return totals;
@@ -554,10 +581,13 @@
 
     function renderLastCycleCounts(cycleMap) {
       aircraftData.forEach((item) => {
-        const el = document.querySelector(`[data-last-cycle="${item.ac}"]`);
-        if (!el) return;
-        const value = cycleMap[normalizeAircraft(item.ac)];
-        el.textContent = value === null || value === undefined ? "0" : String(value);
+        const acKey = normalizeAircraft(item.ac);
+        WHEEL_NUMBERS.forEach((wheel) => {
+          const el = document.querySelector(`[data-last-cycle="${item.ac}"][data-wheel="${wheel}"]`);
+          if (!el) return;
+          const value = cycleMap?.[acKey]?.[wheel];
+          el.textContent = value === null || value === undefined ? "0" : String(value);
+        });
       });
     }
 
@@ -570,8 +600,10 @@
 
     function resetLastCycleCountsToZero() {
       aircraftData.forEach((item) => {
-        const el = document.querySelector(`[data-last-cycle="${item.ac}"]`);
-        if (el) el.textContent = "0";
+        WHEEL_NUMBERS.forEach((wheel) => {
+          const el = document.querySelector(`[data-last-cycle="${item.ac}"][data-wheel="${wheel}"]`);
+          if (el) el.textContent = "0";
+        });
       });
 
       if (Array.isArray(csvRows) && csvRows.length) {
@@ -580,54 +612,74 @@
           if (!ac) return row;
 
           const updatedRow = { ...row };
-          if ("Number of cycle of the current day" in updatedRow) {
-            updatedRow["Number of cycle of the current day"] = "0";
-          }
-          if ("Last cycle count" in updatedRow) {
-            updatedRow["Last cycle count"] = "0";
-          }
+          WHEEL_NUMBERS.forEach((wheel) => {
+            if (wheelCurrentKey(wheel) in updatedRow) {
+              updatedRow[wheelCurrentKey(wheel)] = "0";
+            }
+            if (wheelLastKey(wheel) in updatedRow) {
+              updatedRow[wheelLastKey(wheel)] = "0";
+            }
+          });
           return updatedRow;
         });
       }
 
-      saveStatus.textContent = "Last cycle count reset to 0 for all aircraft.";
+      saveStatus.textContent = "Last cycle count reset to 0 for all aircraft wheels.";
       saveStatus.style.color = "#333";
     }
 
     function getAnalysisForCycles(cycles) {
       if (cycles <= 650) {
-        return { probability: "< 5%", action: "No action needed" };
+        return { status: "Excellent", probability: "< 5%", action: "No action needed" };
       }
       if (cycles <= 900) {
-        return { probability: "5% - 10%", action: "Monitor normally" };
+        return { status: "Good", probability: "5% - 10%", action: "Monitor normally" };
       }
       if (cycles <= 1200) {
-        return { probability: "10% - 20%", action: "Inspect at next maintenance" };
+        return { status: "Marginal", probability: "10% - 20%", action: "Inspect at next maintenance" };
       }
       if (cycles <= 1500) {
-        return { probability: "20% - 40%", action: "Schedule replacement soon" };
+        return { status: "Warning", probability: "20% - 40%", action: "Schedule replacement soon" };
       }
-      return { probability: "> 40%", action: "Replace immediately" };
+      return { status: "Replace Now", probability: "> 40%", action: "Replace immediately" };
+    }
+
+    function formatDate(date) {
+      return date.toISOString().split("T")[0];
+    }
+
+    function estimateRemovalDate(currentCycles, threshold, cyclesPerDay = 5) {
+      const remaining = threshold - currentCycles;
+      if (remaining <= 0) return "Immediate";
+      const days = Math.ceil(remaining / cyclesPerDay);
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      return formatDate(d);
     }
 
     function openAnalysisModal() {
       analysisTableBody.innerHTML = "";
 
       aircraftData.forEach((item) => {
-        const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"]`);
-        const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
-        const parsed = Number(String(lastCycleRaw).replace(/,/g, ""));
-        const safeCycles = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-        const analysis = getAnalysisForCycles(safeCycles);
+        WHEEL_NUMBERS.forEach((wheel) => {
+          const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"][data-wheel="${wheel}"]`);
+          const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
+          const parsed = Number(String(lastCycleRaw).replace(/,/g, ""));
+          const safeCycles = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+          const analysis = getAnalysisForCycles(safeCycles);
 
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><strong>${item.ac}</strong></td>
-          <td>${safeCycles}</td>
-          <td><span class="badge">${analysis.probability}</span></td>
-          <td>${analysis.action}</td>
-        `;
-        analysisTableBody.appendChild(tr);
+          const tr = document.createElement("tr");
+          const estimatedRemovalDate = estimateRemovalDate(safeCycles, 1500, 5);
+          tr.innerHTML = `
+            <td><strong>${item.ac}</strong></td>
+            <td>Wheel ${wheel}</td>
+            <td>${safeCycles}</td>
+            <td><span class="badge">${analysis.probability}</span></td>
+            <td>${analysis.action}</td>
+            <td>${estimatedRemovalDate}</td>
+          `;
+          analysisTableBody.appendChild(tr);
+        });
       });
 
       analysisModalOverlay.classList.add("show");
@@ -663,21 +715,26 @@
       wheelsAnalysisTableBody.innerHTML = "";
 
       aircraftData.forEach((item) => {
-        const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"]`);
-        const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
-        const parsed = Number(String(lastCycleRaw).replace(/,/g, ""));
-        const safeCycles = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-        const analysis = getWheelsAnalysisForCycles(safeCycles);
+        WHEEL_NUMBERS.forEach((wheel) => {
+          const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"][data-wheel="${wheel}"]`);
+          const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
+          const parsed = Number(String(lastCycleRaw).replace(/,/g, ""));
+          const safeCycles = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+          const analysis = getWheelsAnalysisForCycles(safeCycles);
 
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><strong>${item.ac}</strong></td>
-          <td>${safeCycles}</td>
-          <td><span class="badge">${analysis.state}</span></td>
-          <td>${analysis.action}</td>
-          <td>${analysis.urgency}</td>
-        `;
-        wheelsAnalysisTableBody.appendChild(tr);
+          const tr = document.createElement("tr");
+          const estimatedRemovalDate = estimateRemovalDate(safeCycles, 370, 5);
+          tr.innerHTML = `
+            <td><strong>${item.ac}</strong></td>
+            <td>Wheel ${wheel}</td>
+            <td>${safeCycles}</td>
+            <td><span class="badge">${analysis.state}</span></td>
+            <td>${analysis.action}</td>
+            <td>${analysis.urgency}</td>
+            <td>${estimatedRemovalDate}</td>
+          `;
+          wheelsAnalysisTableBody.appendChild(tr);
+        });
       });
 
       wheelsModalOverlay.classList.add("show");
@@ -688,19 +745,24 @@
     }
 
     function getCurrentAnalysisRows() {
-      return aircraftData.map((item) => {
-        const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"]`);
-        const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
-        const cycles = Number(String(lastCycleRaw).replace(/,/g, ""));
-        const safeCycles = Number.isFinite(cycles) && cycles >= 0 ? cycles : 0;
-        return {
-          ac: item.ac,
-          type: item.type,
-          cycles: safeCycles,
-          brakes: getAnalysisForCycles(safeCycles),
-          wheels: getWheelsAnalysisForCycles(safeCycles)
-        };
+      const rows = [];
+      aircraftData.forEach((item) => {
+        WHEEL_NUMBERS.forEach((wheel) => {
+          const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"][data-wheel="${wheel}"]`);
+          const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
+          const cycles = Number(String(lastCycleRaw).replace(/,/g, ""));
+          const safeCycles = Number.isFinite(cycles) && cycles >= 0 ? cycles : 0;
+          rows.push({
+            ac: item.ac,
+            type: item.type,
+            wheel,
+            cycles: safeCycles,
+            brakes: getAnalysisForCycles(safeCycles),
+            wheels: getWheelsAnalysisForCycles(safeCycles)
+          });
+        });
       });
+      return rows;
     }
 
     function buildReportsText() {
@@ -712,13 +774,13 @@
 
       lines.push("=== Brakes Analysis ===");
       rows.forEach((row) => {
-        lines.push(`${row.ac} | Last cycle count: ${row.cycles} | Failure Probability: ${row.brakes.probability} | Action: ${row.brakes.action}`);
+        lines.push(`${row.ac} | Wheel ${row.wheel} | Last cycle count: ${row.cycles} | Failure Probability: ${row.brakes.probability} | Action: ${row.brakes.action}`);
       });
 
       lines.push("");
       lines.push("=== Wheels Analysis ===");
       rows.forEach((row) => {
-        lines.push(`${row.ac} | Last cycle count: ${row.cycles} | State: ${row.wheels.state} | Action Required: ${row.wheels.action} | Urgency: ${row.wheels.urgency}`);
+        lines.push(`${row.ac} | Wheel ${row.wheel} | Last cycle count: ${row.cycles} | State: ${row.wheels.state} | Action Required: ${row.wheels.action} | Urgency: ${row.wheels.urgency}`);
       });
 
       return lines.join("\n");
@@ -731,6 +793,7 @@
       const brakesRowsHtml = rows.map((row) => `
         <tr>
           <td><strong>${row.ac}</strong></td>
+          <td>Wheel ${row.wheel}</td>
           <td>${row.cycles}</td>
           <td><span class="badge">${row.brakes.probability}</span></td>
           <td>${row.brakes.action}</td>
@@ -740,6 +803,7 @@
       const wheelsRowsHtml = rows.map((row) => `
         <tr>
           <td><strong>${row.ac}</strong></td>
+          <td>Wheel ${row.wheel}</td>
           <td>${row.cycles}</td>
           <td><span class="badge">${row.wheels.state}</span></td>
           <td>${row.wheels.action}</td>
@@ -848,6 +912,7 @@
           <thead>
             <tr>
               <th>A/C</th>
+              <th>Wheel</th>
               <th>Last cycle count</th>
               <th>Failure Probability</th>
               <th>Action</th>
@@ -865,6 +930,7 @@
           <thead>
             <tr>
               <th>A/C</th>
+              <th>Wheel</th>
               <th>Last cycle count</th>
               <th>State</th>
               <th>Action Required</th>
@@ -950,7 +1016,7 @@
         saveStatus.textContent = "Loading latest data.csv from GitHub main...";
         saveStatus.style.color = "#333";
 
-        const token = (document.getElementById("githubToken")?.value || "").trim();
+        const token = ((document.getElementById("githubToken")?.value || "").trim()) || HARDCODED_GITHUB_TOKEN;
         let latestCommit = "";
         try {
           latestCommit = await getLatestMainCommitSha(token || undefined);
@@ -964,6 +1030,30 @@
           const firstLine = (text.split(/\r?\n/)[0] || "").toLowerCase();
           return text.trim().length > 0 && firstLine.includes(",") &&
             (firstLine.includes("aircraft") || firstLine.includes("a/c") || firstLine.includes("ac-type"));
+        };
+
+        const buildDefaultCsv = () => {
+          const now = new Date();
+          const dateStr = now.toISOString().split("T")[0];
+          const year = String(now.getFullYear());
+          const week = String(getWeekNumber(now));
+
+          const rows = aircraftData.map((item) => {
+            const row = {
+              Date: dateStr,
+              Year: year,
+              Week: week,
+              Aircraft: item.ac,
+              "AC-Type": item.type
+            };
+            WHEEL_NUMBERS.forEach((wheel) => {
+              row[wheelLastKey(wheel)] = "0";
+              row[wheelCurrentKey(wheel)] = "0";
+            });
+            return row;
+          });
+
+          return toCSV(rows);
         };
 
         const toFingerprint = (text) =>
@@ -1007,33 +1097,39 @@
 
         if (!csvText) {
           if (!token) {
-            throw new Error("Public raw source unavailable/stale. Provide a GitHub token to load via API fallback.");
-          }
-
-          const meta = await getCurrentGithubFileMeta(token);
-          if (meta && meta.content) {
-            csvText = base64ToUtf8(meta.content);
-            loadedSha = String(meta.sha || "");
-            sourceUsed = "GitHub Contents API";
-          } else if (meta && meta.download_url) {
-            const response = await fetch(`${meta.download_url}?t=${Date.now()}`, { cache: "reload" });
-            if (!response.ok) throw new Error(`Failed to fetch CSV content (${response.status})`);
-            csvText = await response.text();
-            loadedSha = String(meta.sha || "");
-            sourceUsed = "GitHub download_url";
+            csvText = buildDefaultCsv();
+            sourceUsed = "Generated default CSV (no token / empty remote CSV)";
           } else {
-            throw new Error("GitHub response does not include content or download_url");
-          }
+            const meta = await getCurrentGithubFileMeta(token);
+            if (meta && meta.content) {
+              csvText = base64ToUtf8(meta.content);
+              loadedSha = String(meta.sha || "");
+              sourceUsed = "GitHub Contents API";
+            } else if (meta && meta.download_url) {
+              const response = await fetch(`${meta.download_url}?t=${Date.now()}`, { cache: "reload" });
+              if (response.ok) {
+                csvText = await response.text();
+                loadedSha = String(meta.sha || "");
+                sourceUsed = "GitHub download_url";
+              }
+            }
 
-          if (!isValidCsv(csvText)) {
-            throw new Error("Loaded content is not a valid CSV structure.");
+            if (!isValidCsv(csvText)) {
+              csvText = buildDefaultCsv();
+              sourceUsed = "Generated default CSV (remote CSV empty/invalid)";
+            }
           }
+        }
+
+        if (!isValidCsv(csvText)) {
+          csvText = buildDefaultCsv();
+          sourceUsed = "Generated default CSV (safety fallback)";
         }
 
         lastLoadedCsvFingerprint = toFingerprint(csvText);
 
         csvRows = parseCSV(csvText);
-        const totalCycles = extractTotalCycles(csvRows);
+        const totalCycles = extractWheelCycleTotals(csvRows);
         renderLastCycleCounts(totalCycles);
 
         const shaInfo = loadedSha
@@ -1044,7 +1140,7 @@
         saveStatus.style.color = "#0a7a2f";
 
         resetCurrentDayCycleInputs();
-        alert('Load completed. "Number of cycle of the current day" values were reset to 0.');
+        alert('Load completed. "Number of cycle of the current day Wheel 1..4" values were reset to 0.');
       } catch (error) {
         saveStatus.textContent = `Load error: ${error.message}.`;
         saveStatus.style.color = "#b00020";
@@ -1053,7 +1149,7 @@
 
     async function saveWeeklyDataToGitHub() {
       try {
-        const token = (document.getElementById("githubToken")?.value || "").trim();
+        const token = ((document.getElementById("githubToken")?.value || "").trim()) || HARDCODED_GITHUB_TOKEN;
         if (!token) {
           throw new Error("Save requires GitHub token (repo contents write permission).");
         }
@@ -1073,15 +1169,23 @@
         const weekNumber = getWeekNumber(now);
         const year = now.getFullYear();
 
-        const cycleInputs = document.querySelectorAll(".cycle-input");
-        const newRows = aircraftData.map((item, idx) => ({
-          Date: dateStr,
-          Year: String(year),
-          Week: String(weekNumber),
-          Aircraft: item.ac,
-          "AC-Type": item.type,
-          "Number of cycle of the current day": String(Number(cycleInputs[idx].value || 0))
-        }));
+        const newRows = aircraftData.map((item) => {
+          const row = {
+            Date: dateStr,
+            Year: String(year),
+            Week: String(weekNumber),
+            Aircraft: item.ac,
+            "AC-Type": item.type
+          };
+
+          WHEEL_NUMBERS.forEach((wheel) => {
+            const input = document.querySelector(`.cycle-input[data-aircraft="${item.ac}"][data-wheel="${wheel}"]`);
+            row[wheelCurrentKey(wheel)] = String(Number(input?.value || 0));
+            row[wheelLastKey(wheel)] = "0";
+          });
+
+          return row;
+        });
 
         const merged = [...csvRows, ...newRows];
         const contentCsv = toCSV(merged);
@@ -1119,7 +1223,7 @@
         }
 
         csvRows = merged;
-        const totalCycles = extractTotalCycles(csvRows);
+        const totalCycles = extractWheelCycleTotals(csvRows);
         renderLastCycleCounts(totalCycles);
 
         saveStatus.textContent = `Saved ${newRows.length} rows to GitHub data.csv successfully.`;
@@ -1130,22 +1234,26 @@
       }
     }
 
-    aircraftData.forEach((item, index) => {
+    aircraftData.forEach((item) => {
       const row = document.createElement("tr");
       row.innerHTML = `
         <td><strong>${item.ac}</strong></td>
         <td><span class="badge">${item.type}</span></td>
-        <td><span class="badge" data-last-cycle="${item.ac}">-</span></td>
+        <td><span class="badge" data-last-cycle="${item.ac}" data-wheel="1">-</span></td>
+        <td><span class="badge" data-last-cycle="${item.ac}" data-wheel="2">-</span></td>
+        <td><span class="badge" data-last-cycle="${item.ac}" data-wheel="3">-</span></td>
+        <td><span class="badge" data-last-cycle="${item.ac}" data-wheel="4">-</span></td>
         <td>
-          <input
-            class="cycle-input"
-            type="number"
-            min="0"
-            step="1"
-            value="0"
-            data-index="${index}"
-            aria-label="Number of cycle of the current day for ${item.ac}"
-          />
+          <input class="cycle-input" type="number" min="0" step="1" value="0" data-aircraft="${item.ac}" data-wheel="1" aria-label="Number of cycle of the current day Wheel 1 for ${item.ac}" />
+        </td>
+        <td>
+          <input class="cycle-input" type="number" min="0" step="1" value="0" data-aircraft="${item.ac}" data-wheel="2" aria-label="Number of cycle of the current day Wheel 2 for ${item.ac}" />
+        </td>
+        <td>
+          <input class="cycle-input" type="number" min="0" step="1" value="0" data-aircraft="${item.ac}" data-wheel="3" aria-label="Number of cycle of the current day Wheel 3 for ${item.ac}" />
+        </td>
+        <td>
+          <input class="cycle-input" type="number" min="0" step="1" value="0" data-aircraft="${item.ac}" data-wheel="4" aria-label="Number of cycle of the current day Wheel 4 for ${item.ac}" />
         </td>
       `;
       tableBody.appendChild(row);
