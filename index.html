@@ -1,1295 +1,3732 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Aircraft Data - APN 206</title>
+
   <style>
+
     :root {
+
       --brand-red: #e30613;
+
       --brand-dark: #1f1f1f;
+
       --brand-light: #f7f7f8;
+
       --text: #222;
+
       --white: #fff;
+
       --border: #e5e5e5;
+
     }
 
+
+
     * {
+
       box-sizing: border-box;
+
+    }
+
+
+
+    body {
+
+      margin: 0;
+
+      font-family: Arial, Helvetica, sans-serif;
+
+      color: var(--text);
+
+      background: linear-gradient(180deg, #fafafa 0%, #f1f3f5 100%);
+
+    }
+
+
+
+    .topbar {
+
+      background: var(--brand-red);
+
+      color: var(--white);
+
+      padding: 14px 20px;
+
+      font-weight: 700;
+
+      letter-spacing: 0.3px;
+
+      font-size: 1.1rem;
+
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+      gap: 10px;
+
+    }
+
+
+
+    .welcome-user {
+
+      font-size: 0.9rem;
+
+      font-weight: 600;
+
+      opacity: 0.95;
+
+    }
+
+
+
+    .landing {
+
+      min-height: 100vh;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      padding: 20px;
+
+    }
+
+
+
+    .landing-card {
+
+      width: min(520px, 100%);
+
+      background: #fff;
+
+      border: 1px solid #e8e8e8;
+
+      border-radius: 14px;
+
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+
+      overflow: hidden;
+
+    }
+
+
+
+    .landing-head {
+
+      background: var(--brand-dark);
+
+      color: #fff;
+
+      padding: 18px 20px;
+
+    }
+
+
+
+    .landing-head h1 {
+
+      margin: 0;
+
+      font-size: 1.35rem;
+
+    }
+
+
+
+    .landing-body {
+
+      padding: 16px 20px 20px;
+
+      background: var(--brand-light);
+
+    }
+
+
+
+    .landing-input {
+
+      width: 100%;
+
+      padding: 11px 12px;
+
+      border: 1px solid #d8d8d8;
+
+      border-radius: 10px;
+
+      font-size: 0.95rem;
+
+      outline: none;
+
+      margin-bottom: 10px;
+
+    }
+
+
+
+    .landing-input:focus {
+
+      border-color: var(--brand-red);
+
+      box-shadow: 0 0 0 2px rgba(227, 6, 19, 0.12);
+
+    }
+
+
+
+    .landing-error {
+
+      color: #b00020;
+
+      font-size: 0.86rem;
+
+      min-height: 18px;
+
+      margin-bottom: 8px;
+
+    }
+
+
+
+    .hidden {
+
+      display: none !important;
+
+    }
+
+
+
+    .container {
+
+      max-width: 1280px;
+
+      margin: 28px auto;
+
+      padding: 0 12px;
+
+    }
+
+
+
+    .hero {
+
+      background: var(--white);
+
+      border-radius: 14px;
+
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+
+      overflow: hidden;
+
+      border: 1px solid #eee;
+
+    }
+
+
+
+    .hero-head {
+
+      background: var(--brand-dark);
+
+      color: var(--white);
+
+      padding: 20px;
+
+    }
+
+
+
+    .hero-head h1 {
+
+      margin: 0;
+
+      font-size: 1.6rem;
+
+      font-weight: 800;
+
+    }
+
+
+
+    .hero-head p {
+
+      margin: 8px 0 0;
+
+      opacity: 0.9;
+
+      font-size: 0.95rem;
+
+    }
+
+
+
+    .content {
+
+      padding: 18px;
+
+      background: var(--brand-light);
+
+    }
+
+
+
+    .table-wrap {
+
+      background: var(--white);
+
+      border-radius: 12px;
+
+      overflow: hidden;
+
+      border: 1px solid var(--border);
+
+    }
+
+
+
+    table {
+
+      width: 100%;
+
+      border-collapse: collapse;
+
+      table-layout: fixed;
+
+    }
+
+
+
+    thead th {
+
+      background: var(--brand-red);
+
+      color: var(--white);
+
+      text-align: left;
+
+      padding: 10px 8px;
+
+      font-size: 0.8rem;
+
+      letter-spacing: 0.1px;
+
+      line-height: 1.15;
+
+      word-break: break-word;
+
+    }
+
+
+
+    tbody td {
+
+      padding: 8px 8px;
+
+      border-bottom: 1px solid #f0f0f0;
+
+      font-size: 0.82rem;
+
+    }
+
+
+
+    tbody tr:nth-child(even) {
+
+      background: #fcfcfc;
+
+    }
+
+
+
+    tbody tr:hover {
+
+      background: #fff4f5;
+
+    }
+
+
+
+    .badge {
+
+      display: inline-block;
+
+      background: #ffe7e9;
+
+      color: #b0000a;
+
+      padding: 3px 8px;
+
+      border-radius: 999px;
+
+      font-weight: 700;
+
+      font-size: 0.75rem;
+
+      border: 1px solid #ffd4db;
+
+    }
+
+
+
+    .status-green {
+
+      background: #e9f8ee !important;
+
+      color: #0a7a2f !important;
+
+      border-color: #bfe8cb !important;
+
+    }
+
+
+
+    .status-yellow {
+
+      background: #fff7e6 !important;
+
+      color: #8a5a00 !important;
+
+      border-color: #ffe2a8 !important;
+
+    }
+
+
+
+    .status-red {
+
+      background: #ffe9ec !important;
+
+      color: #b00020 !important;
+
+      border-color: #ffc3cc !important;
+
+    }
+
+
+
+    td.status-green, td.status-yellow, td.status-red {
+
+      font-weight: 700;
+
+    }
+
+
+
+    .cycle-input {
+
+      width: 100%;
+
+      min-width: 72px;
+
+      padding: 6px 7px;
+
+      border: 1px solid #d8d8d8;
+
+      border-radius: 7px;
+
+      font-size: 0.82rem;
+
+      outline: none;
+
+    }
+
+
+
+    .cycle-input:focus {
+
+      border-color: var(--brand-red);
+
+      box-shadow: 0 0 0 2px rgba(227, 6, 19, 0.12);
+
+    }
+
+
+
+    .wheel-cell {
+
+      display: flex;
+
+      flex-direction: column;
+
+      gap: 6px;
+
+    }
+
+
+
+    .btn-wheel-reset {
+
+      border: none;
+
+      border-radius: 7px;
+
+      padding: 5px 8px;
+
+      font-size: 0.72rem;
+
+      font-weight: 700;
+
+      cursor: pointer;
+
+      background: #2f2f2f;
+
+      color: #fff;
+
+      width: 100%;
+
+    }
+
+
+
+    .btn-wheel-reset:hover {
+
+      filter: brightness(0.96);
+
+    }
+
+
+
+    .token-row {
+
+      margin-top: 14px;
+
+      display: grid;
+
+      grid-template-columns: 1fr;
+
+      gap: 8px;
+
+    }
+
+
+
+    .token-input {
+
+      width: 100%;
+
+      padding: 10px 12px;
+
+      border: 1px solid #d8d8d8;
+
+      border-radius: 10px;
+
+      font-size: 0.9rem;
+
+      outline: none;
+
+    }
+
+
+
+    .token-input:focus {
+
+      border-color: var(--brand-red);
+
+      box-shadow: 0 0 0 2px rgba(227, 6, 19, 0.12);
+
+    }
+
+
+
+    .actions {
+
+      margin-top: 14px;
+
+      display: flex;
+
+      justify-content: flex-end;
+
+      gap: 8px;
+
+      align-items: center;
+
+      flex-wrap: wrap;
+
+    }
+
+
+
+    .btn {
+
+      border: none;
+
+      border-radius: 10px;
+
+      padding: 10px 16px;
+
+      font-weight: 700;
+
+      cursor: pointer;
+
+    }
+
+
+
+    .btn-primary {
+
+      background: var(--brand-red);
+
+      color: #fff;
+
+      box-shadow: 0 4px 12px rgba(227, 6, 19, 0.25);
+
+    }
+
+
+
+    .btn-secondary {
+
+      background: #2f2f2f;
+
+      color: #fff;
+
+    }
+
+
+
+    .btn:hover {
+
+      filter: brightness(0.96);
+
+    }
+
+
+
+    .status-msg {
+
+      width: 100%;
+
+      font-size: 0.88rem;
+
+      color: #333;
+
+      text-align: right;
+
+      margin-top: 6px;
+
+      white-space: pre-wrap;
+
+    }
+
+
+
+    .footer-note {
+
+      margin-top: 10px;
+
+      font-size: 0.85rem;
+
+      color: #666;
+
+      text-align: right;
+
+    }
+
+
+
+    .modal-overlay {
+
+      position: fixed;
+
+      inset: 0;
+
+      background: rgba(0, 0, 0, 0.45);
+
+      display: none;
+
+      align-items: center;
+
+      justify-content: center;
+
+      z-index: 1000;
+
+      padding: 16px;
+
+    }
+
+
+
+    .modal-overlay.show {
+
+      display: flex;
+
+    }
+
+
+
+    .modal {
+
+      width: min(1000px, 100%);
+
+      max-height: 90vh;
+
+      overflow: auto;
+
+      background: #fff;
+
+      border-radius: 14px;
+
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+
+      border: 1px solid #e8e8e8;
+
+    }
+
+
+
+    .modal-header {
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+      padding: 14px 16px;
+
+      background: var(--brand-red);
+
+      color: #fff;
+
+    }
+
+
+
+    .modal-title {
+
+      margin: 0;
+
+      font-size: 1.05rem;
+
+      font-weight: 800;
+
+    }
+
+
+
+    .modal-close {
+
+      border: none;
+
+      background: #fff;
+
+      color: var(--brand-red);
+
+      font-weight: 800;
+
+      border-radius: 8px;
+
+      padding: 6px 10px;
+
+      cursor: pointer;
+
+    }
+
+
+
+    .modal-body {
+
+      padding: 14px 16px 18px;
+
+    }
+
+
+
+    .analysis-table-wrap {
+
+      border: 1px solid #ececec;
+
+      border-radius: 10px;
+
+      overflow: hidden;
+
+      margin-bottom: 12px;
+
+    }
+
+
+
+    .analysis-note {
+
+      font-size: 0.86rem;
+
+      color: #555;
+
+      line-height: 1.4;
+
+    }
+
+
+
+    @media (max-width: 640px) {
+
+      .hero-head h1 {
+
+        font-size: 1.25rem;
+
+      }
+
+
+
+      thead th, tbody td {
+
+        padding: 11px 10px;
+
+      }
+
+
+
+      .topbar {
+
+        font-size: 1rem;
+
+      }
+
+
+
+      .actions {
+
+        justify-content: stretch;
+
+      }
+
+
+
+      .btn {
+
+        width: 100%;
+
+      }
+
+
+
+      .status-msg {
+
+        text-align: left;
+
+      }
+
+    }
+
+  </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+</head>
+
+<body>
+
+  <section id="landingPage" class="landing">
+
+    <div class="landing-card">
+
+      <div class="landing-head">
+
+        <h1>Aircraft Weibull Analysis Tool</h1>
+
+      </div>
+
+      <div class="landing-body">
+
+        <input id="usernameInput" class="landing-input" type="text" placeholder="Enter username" />
+
+        <div id="landingError" class="landing-error"></div>
+
+        <button id="enterAppBtn" class="btn btn-primary" type="button">Enter</button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <div id="appRoot" class="hidden">
+
+    <div class="topbar">
+
+      <span>APN 206</span>
+
+      <span id="welcomeUser" class="welcome-user"></span>
+
+    </div>
+
+
+
+  <main class="container">
+
+    <section class="hero">
+
+      <div class="hero-head">
+
+        <h1>Preventive maintenance of brakes and wheels for the A320</h1>
+
+      </div>
+
+
+
+      <div class="content">
+
+        <div class="table-wrap">
+
+          <table aria-label="Aircraft Data">
+
+            <thead>
+
+              <tr>
+
+                <th style="width: 7%;">A/C</th>
+
+                <th style="width: 7%;">AC-Type</th>
+
+                <th style="width: 8%;">Last cycle count Wheel 1</th>
+
+                <th style="width: 8%;">Last cycle count Wheel 2</th>
+
+                <th style="width: 8%;">Last cycle count Wheel 3</th>
+
+                <th style="width: 8%;">Last cycle count Wheel 4</th>
+
+                <th style="width: 13.5%;">Number of cycle of the current day Wheel 1</th>
+
+                <th style="width: 13.5%;">Number of cycle of the current day Wheel 2</th>
+
+                <th style="width: 13.5%;">Number of cycle of the current day Wheel 3</th>
+
+                <th style="width: 13.5%;">Number of cycle of the current day Wheel 4</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody id="aircraftTableBody"></tbody>
+
+          </table>
+
+        </div>
+
+
+
+       
+
+      
+
+
+
+        <div class="token-row">
+
+          <input id="githubToken" class="token-input" type="password" placeholder="GitHub Personal Access Token (repo scope)" />
+
+          <input id="reportEmail" class="token-input" type="email" placeholder="Recipient email for reports" />
+
+        </div>
+
+
+
+        <div class="actions">
+
+          <button id="loadGithubBtn" class="btn btn-secondary" type="button">Load data.csv from GitHub</button>
+
+          <button id="saveGithubBtn" class="btn btn-primary" type="button">Save Weekly Data to GitHub</button>
+
+          <button id="analyzeBtn" class="btn btn-secondary" type="button">analyze brakes using weibull</button>
+
+          <button id="analyzeWheelsBtn" class="btn btn-secondary" type="button">Analyze wheels using weibull</button>
+
+          <button id="resetBtn" class="btn btn-secondary" type="button">Reset</button>
+
+          <button id="downloadPdfBtn" class="btn btn-secondary" type="button">Download Report PDF</button>
+
+          <button id="sendReportsBtn" class="btn btn-secondary" type="button">Send Reports</button>
+
+          <div id="saveStatus" class="status-msg"></div>
+
+        </div>
+
+
+
+        <div class="footer-note">Total aircraft: <span id="totalCount">0</span></div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+
+  <div id="analysisModalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="analysisModalTitle">
+
+    <div class="modal">
+
+      <div class="modal-header">
+
+        <h2 id="analysisModalTitle" class="modal-title">Aircraft Analysis</h2>
+
+        <button id="analysisModalCloseBtn" class="modal-close" type="button" aria-label="Close analysis popup">Close</button>
+
+      </div>
+
+      <div class="modal-body">
+
+        <div class="analysis-table-wrap">
+
+          <table aria-label="Aircraft analysis results">
+
+            <thead>
+
+              <tr>
+
+                <th>A/C</th>
+
+                <th>Wheel</th>
+
+                <th>Last cycle count</th>
+
+                <th>Failure Probability</th>
+
+                <th>Action</th>
+
+                <th>Estimated removal date</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody id="analysisTableBody"></tbody>
+
+          </table>
+
+        </div>
+
+        <div class="analysis-note">
+
+          Rules used:
+
+          0–650 cycles → < 5% (No action needed),
+
+          650–900 cycles → 5%–10% (Monitor normally),
+
+          900–1,200 cycles → 10%–20% (Inspect at next maintenance),
+
+          1,200–1,500 cycles → 20%–40% (Schedule replacement soon),
+
+          > 1,500 cycles → > 40% (Replace immediately).
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <div id="wheelsModalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="wheelsModalTitle">
+
+    <div class="modal">
+
+      <div class="modal-header">
+
+        <h2 id="wheelsModalTitle" class="modal-title">Wheel Weibull Analysis</h2>
+
+        <button id="wheelsModalCloseBtn" class="modal-close" type="button" aria-label="Close wheels analysis popup">Close</button>
+
+      </div>
+
+      <div class="modal-body">
+
+        <div class="analysis-table-wrap">
+
+          <table aria-label="Aircraft wheels analysis results">
+
+            <thead>
+
+              <tr>
+
+                <th>A/C</th>
+
+                <th>Wheel</th>
+
+                <th>Last cycle count</th>
+
+                <th>State</th>
+
+                <th>Action Required</th>
+
+                <th>Urgency</th>
+
+                <th>Estimated removal date</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody id="wheelsAnalysisTableBody"></tbody>
+
+          </table>
+
+        </div>
+
+        <div class="analysis-note">
+
+          Wheel rules used:
+
+          0–250 GOOD, 250–280 MONITOR, 280–300 ATTENTION, 300–320 WARNING,
+
+          320–350 CRITICAL, 350–370 IMMINENT, 370+ FAILED.
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  </div>
+
+
+
+  <script>
+
+    const aircraftData = [
+
+      { ac: "CN-NMH", type: "A320" },
+
+      { ac: "CN-NMI", type: "A320" },
+
+      { ac: "CN-NMJ", type: "A320" },
+
+      { ac: "CN-NML", type: "A320" },
+
+      { ac: "CN-NMN", type: "A320" },
+
+      { ac: "CN-NMO", type: "A320" },
+
+      { ac: "CN-NMP", type: "A320" },
+
+      { ac: "CN-NMQ", type: "A320" },
+
+      { ac: "CN-NMS", type: "A320" },
+
+      { ac: "CN-NMT", type: "A320" }
+
+    ];
+
+
+
+    const landingPage = document.getElementById("landingPage");
+
+    const appRoot = document.getElementById("appRoot");
+
+    const usernameInput = document.getElementById("usernameInput");
+
+    const enterAppBtn = document.getElementById("enterAppBtn");
+
+    const landingError = document.getElementById("landingError");
+
+    const welcomeUser = document.getElementById("welcomeUser");
+
+
+
+    const tableBody = document.getElementById("aircraftTableBody");
+
+    const totalCount = document.getElementById("totalCount");
+
+    const loadGithubBtn = document.getElementById("loadGithubBtn");
+
+    const saveGithubBtn = document.getElementById("saveGithubBtn");
+
+    const analyzeBtn = document.getElementById("analyzeBtn");
+
+    const analyzeWheelsBtn = document.getElementById("analyzeWheelsBtn");
+
+    const resetBtn = document.getElementById("resetBtn");
+
+    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+
+    const sendReportsBtn = document.getElementById("sendReportsBtn");
+
+    const reportEmailInput = document.getElementById("reportEmail");
+
+    const saveStatus = document.getElementById("saveStatus");
+
+    const analysisModalOverlay = document.getElementById("analysisModalOverlay");
+
+    const analysisModalCloseBtn = document.getElementById("analysisModalCloseBtn");
+
+    const analysisTableBody = document.getElementById("analysisTableBody");
+
+    const wheelsModalOverlay = document.getElementById("wheelsModalOverlay");
+
+    const wheelsModalCloseBtn = document.getElementById("wheelsModalCloseBtn");
+
+    const wheelsAnalysisTableBody = document.getElementById("wheelsAnalysisTableBody");
+
+
+
+    const OWNER = "charafMoustakim";
+
+    const REPO = "aircraft";
+
+    const BRANCH = "main";
+
+    const FILE_PATH = "data.csv";
+
+    const GITHUB_CONTENT_API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}?ref=${encodeURIComponent(BRANCH)}`;
+
+    const GITHUB_RAW_CSV_URL = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${FILE_PATH}`;
+
+
+
+    let csvRows = [];
+
+    let lastLoadedCsvFingerprint = "";
+
+    const WHEEL_NUMBERS = [1, 2, 3, 4];
+
+    const HARDCODED_GITHUB_TOKEN = "";
+
+
+
+    function getWeekNumber(date = new Date()) {
+
+      const tempDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+
+      const dayNum = tempDate.getUTCDay() || 7;
+
+      tempDate.setUTCDate(tempDate.getUTCDate() + 4 - dayNum);
+
+      const yearStart = new Date(Date.UTC(tempDate.getUTCFullYear(), 0, 1));
+
+      return Math.ceil((((tempDate - yearStart) / 86400000) + 1) / 7);
+
+    }
+
+
+
+    function normalizeAircraft(value) {
+
+      return String(value ?? "").trim().toUpperCase();
+
+    }
+
+
+
+    function parseCycleValue(value) {
+
+      const cleaned = String(value ?? "").trim();
+
+      if (cleaned === "") return null;
+
+      const n = Number(cleaned);
+
+      if (!Number.isFinite(n) || n < 0) return null;
+
+      return n;
+
+    }
+
+
+
+    function parseIntegerCycleValue(value) {
+
+      const n = parseCycleValue(value);
+
+      if (n === null) return null;
+
+      return Math.round(n);
+
+    }
+
+
+
+    function parseCSVLine(line) {
+
+      const out = [];
+
+      let current = "";
+
+      let inQuotes = false;
+
+
+
+      for (let i = 0; i < line.length; i++) {
+
+        const ch = line[i];
+
+        if (ch === '"') {
+
+          if (inQuotes && line[i + 1] === '"') {
+
+            current += '"';
+
+            i++;
+
+          } else {
+
+            inQuotes = !inQuotes;
+
+          }
+
+        } else if (ch === "," && !inQuotes) {
+
+          out.push(current);
+
+          current = "";
+
+        } else {
+
+          current += ch;
+
+        }
+
+      }
+
+      out.push(current);
+
+      return out;
+
+    }
+
+
+
+    function parseCSV(text) {
+
+      const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter(l => l.trim() !== "");
+
+      if (lines.length === 0) return [];
+
+
+
+      const headers = parseCSVLine(lines[0]).map(h => h.trim());
+
+      const rows = [];
+
+
+
+      for (let i = 1; i < lines.length; i++) {
+
+        const values = parseCSVLine(lines[i]);
+
+        const row = {};
+
+        headers.forEach((h, idx) => {
+
+          row[h] = (values[idx] ?? "").trim();
+
+        });
+
+        rows.push(row);
+
+      }
+
+
+
+      return rows;
+
+    }
+
+
+
+    function csvEscape(value) {
+
+      const str = String(value ?? "");
+
+      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+
+        return `"${str.replace(/"/g, '""')}"`;
+
+      }
+
+      return str;
+
+    }
+
+
+
+    function wheelLastKey(wheel) {
+
+      return `Last cycle count Wheel ${wheel}`;
+
+    }
+
+
+
+    function wheelCurrentKey(wheel) {
+
+      return `Number of cycle of the current day Wheel ${wheel}`;
+
+    }
+
+
+
+    function toCSV(rows) {
+
+      const headers = ["Date", "Year", "Week", "Aircraft", "AC-Type"];
+
+      WHEEL_NUMBERS.forEach((wheel) => headers.push(wheelLastKey(wheel)));
+
+      WHEEL_NUMBERS.forEach((wheel) => headers.push(wheelCurrentKey(wheel)));
+
+
+
+      const lines = [headers.join(",")];
+
+      rows.forEach((row) => {
+
+        const line = headers.map((h) => csvEscape(row[h] ?? "")).join(",");
+
+        lines.push(line);
+
+      });
+
+      return lines.join("\n");
+
+    }
+
+
+
+    function extractWheelCycleTotals(rows) {
+
+      const totals = {};
+
+
+
+      aircraftData.forEach((item) => {
+
+        totals[normalizeAircraft(item.ac)] = { 1: 0, 2: 0, 3: 0, 4: 0 };
+
+      });
+
+
+
+      rows.forEach((row) => {
+
+        const ac = normalizeAircraft(row.Aircraft ?? row["A/C"] ?? row.ac ?? "");
+
+        if (!ac || !(ac in totals)) return;
+
+
+
+        WHEEL_NUMBERS.forEach((wheel) => {
+
+          const cycleVal = parseIntegerCycleValue(
+
+            row[wheelCurrentKey(wheel)] ?? null
+
+          );
+
+
+
+          if (cycleVal === null) return;
+
+          totals[ac][wheel] += cycleVal;
+
+        });
+
+      });
+
+
+
+      return totals;
+
+    }
+
+
+
+    function renderLastCycleCounts(cycleMap) {
+
+      aircraftData.forEach((item) => {
+
+        const acKey = normalizeAircraft(item.ac);
+
+        WHEEL_NUMBERS.forEach((wheel) => {
+
+          const el = document.querySelector(`[data-last-cycle="${item.ac}"][data-wheel="${wheel}"]`);
+
+          if (!el) return;
+
+          const value = cycleMap?.[acKey]?.[wheel];
+
+          const safe = value === null || value === undefined ? 0 : value;
+
+          el.textContent = String(Math.max(0, Math.round(safe)));
+
+        });
+
+      });
+
+    }
+
+
+
+    function resetCurrentDayCycleInputs() {
+
+      const cycleInputs = document.querySelectorAll(".cycle-input");
+
+      cycleInputs.forEach((input) => {
+
+        input.value = "0";
+
+      });
+
+    }
+
+
+
+    function getSeverityFromBrakesAction(action) {
+
+      if (action === "Replace immediately") return "red";
+
+      if (
+
+        action === "Inspect at next maintenance" ||
+
+        action === "Schedule replacement soon" ||
+
+        action === "Monitor normally"
+
+      ) return "yellow";
+
+      return "green";
+
+    }
+
+
+
+    function getSeverityFromWheelState(state) {
+
+      if (state === "IMMINENT" || state === "FAILED") return "red";
+
+      if (
+
+        state === "ATTENTION" ||
+
+        state === "WARNING" ||
+
+        state === "CRITICAL"
+
+      ) return "yellow";
+
+      if (state === "MONITOR") return "green";
+
+      return "green";
+
+    }
+
+
+
+    function severityToClass(severity) {
+
+      if (severity === "red") return "status-red";
+
+      if (severity === "yellow") return "status-yellow";
+
+      return "status-green";
+
+    }
+
+
+
+    function resetSingleAircraftWheel(aircraft, wheel) {
+
+      const ac = normalizeAircraft(aircraft);
+
+      const wheelNum = Number(wheel);
+
+      if (!ac || !WHEEL_NUMBERS.includes(wheelNum)) return;
+
+
+
+      const lastCycleEl = document.querySelector(`[data-last-cycle="${aircraft}"][data-wheel="${wheelNum}"]`);
+
+      if (lastCycleEl) lastCycleEl.textContent = "0";
+
+
+
+      const inputEl = document.querySelector(`.cycle-input[data-aircraft="${aircraft}"][data-wheel="${wheelNum}"]`);
+
+      if (inputEl) inputEl.value = "0";
+
+
+
+      if (Array.isArray(csvRows) && csvRows.length) {
+
+        csvRows = csvRows.map((row) => {
+
+          const rowAircraft = normalizeAircraft(row.Aircraft ?? row["A/C"] ?? row.ac ?? "");
+
+          if (rowAircraft !== ac) return row;
+
+          const updated = { ...row };
+
+          updated[wheelLastKey(wheelNum)] = "0";
+
+          updated[wheelCurrentKey(wheelNum)] = "0";
+
+          return updated;
+
+        });
+
+      }
+
+
+
+      saveStatus.textContent = `Reset completed for ${aircraft} wheel ${wheelNum}.`;
+
+      saveStatus.style.color = "#333";
+
+      updateMainTableSeverityColors();
+
+    }
+
+
+
+    function resetLastCycleCountsToZero() {
+
+      aircraftData.forEach((item) => {
+
+        WHEEL_NUMBERS.forEach((wheel) => {
+
+          const el = document.querySelector(`[data-last-cycle="${item.ac}"][data-wheel="${wheel}"]`);
+
+          if (el) el.textContent = "0";
+
+        });
+
+      });
+
+
+
+      if (Array.isArray(csvRows) && csvRows.length) {
+
+        csvRows = csvRows.map((row) => {
+
+          const ac = normalizeAircraft(row.Aircraft ?? row["A/C"] ?? row.ac ?? "");
+
+          if (!ac) return row;
+
+
+
+          const updatedRow = { ...row };
+
+          WHEEL_NUMBERS.forEach((wheel) => {
+
+            if (wheelCurrentKey(wheel) in updatedRow) {
+
+              updatedRow[wheelCurrentKey(wheel)] = "0";
+
+            }
+
+            if (wheelLastKey(wheel) in updatedRow) {
+
+              updatedRow[wheelLastKey(wheel)] = "0";
+
+            }
+
+          });
+
+          return updatedRow;
+
+        });
+
+      }
+
+
+
+      saveStatus.textContent = "Last cycle count reset to 0 for all aircraft wheels.";
+
+      saveStatus.style.color = "#333";
+
+    }
+
+
+
+    function getAnalysisForCycles(cycles) {
+
+      if (cycles <= 650) {
+
+        return { status: "Excellent", probability: "< 5%", action: "No action needed" };
+
+      }
+
+      if (cycles <= 900) {
+
+        return { status: "Good", probability: "5% - 10%", action: "Monitor normally" };
+
+      }
+
+      if (cycles <= 1200) {
+
+        return { status: "Marginal", probability: "10% - 20%", action: "Inspect at next maintenance" };
+
+      }
+
+      if (cycles <= 1500) {
+
+        return { status: "Warning", probability: "20% - 40%", action: "Schedule replacement soon" };
+
+      }
+
+      return { status: "Replace Now", probability: "> 40%", action: "Replace immediately" };
+
+    }
+
+
+
+    function updateMainTableSeverityColors() {
+
+      aircraftData.forEach((item) => {
+
+        WHEEL_NUMBERS.forEach((wheel) => {
+
+          const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"][data-wheel="${wheel}"]`);
+
+          if (!lastCycleEl) return;
+
+
+
+          const lastCycleRaw = (lastCycleEl.textContent || "0").trim();
+
+          const parsed = Number(String(lastCycleRaw).replace(/,/g, ""));
+
+          const safeCycles = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+
+
+
+          const brakes = getAnalysisForCycles(safeCycles);
+
+          const severity = getSeverityFromBrakesAction(brakes.action);
+
+
+
+          lastCycleEl.classList.remove("status-green", "status-yellow", "status-red");
+
+          lastCycleEl.classList.add(severityToClass(severity));
+
+        });
+
+      });
+
+    }
+
+
+
+    function formatDate(date) {
+
+      return date.toISOString().split("T")[0];
+
+    }
+
+
+
+    function estimateRemovalDate(currentCycles, threshold, cyclesPerDay = 5) {
+
+      const remaining = threshold - currentCycles;
+
+      if (remaining <= 0) return "Immediate";
+
+      const days = Math.ceil(remaining / cyclesPerDay);
+
+      const d = new Date();
+
+      d.setDate(d.getDate() + days);
+
+      return formatDate(d);
+
+    }
+
+
+
+    function openAnalysisModal() {
+
+      analysisTableBody.innerHTML = "";
+
+
+
+      aircraftData.forEach((item) => {
+
+        WHEEL_NUMBERS.forEach((wheel) => {
+
+          const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"][data-wheel="${wheel}"]`);
+
+          const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
+
+          const parsed = Number(String(lastCycleRaw).replace(/,/g, ""));
+
+          const safeCycles = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+
+          const analysis = getAnalysisForCycles(safeCycles);
+
+          const severity = getSeverityFromBrakesAction(analysis.action);
+
+
+
+          const tr = document.createElement("tr");
+
+          const estimatedRemovalDate = estimateRemovalDate(safeCycles, 1500, 5);
+
+          tr.innerHTML = `
+
+            <td><strong>${item.ac}</strong></td>
+
+            <td>Wheel ${wheel}</td>
+
+            <td><span class="badge ${severityToClass(severity)}">${safeCycles}</span></td>
+
+            <td><span class="badge ${severityToClass(severity)}">${analysis.probability}</span></td>
+
+            <td>${analysis.action}</td>
+
+            <td>${estimatedRemovalDate}</td>
+
+          `;
+
+          analysisTableBody.appendChild(tr);
+
+        });
+
+      });
+
+
+
+      analysisModalOverlay.classList.add("show");
+
+    }
+
+
+
+    function closeAnalysisModal() {
+
+      analysisModalOverlay.classList.remove("show");
+
+    }
+
+
+
+    function getWheelsAnalysisForCycles(cycles) {
+
+      if (cycles < 250) {
+
+        return { state: "GOOD", action: "No action needed", urgency: "None" };
+
+      }
+
+      if (cycles < 280) {
+
+        return { state: "MONITOR", action: "Check every inspection", urgency: "Low" };
+
+      }
+
+      if (cycles < 300) {
+
+        return { state: "ATTENTION", action: "Increased monitoring", urgency: "Medium" };
+
+      }
+
+      if (cycles < 320) {
+
+        return { state: "WARNING", action: "Plan replacement soon", urgency: "High" };
+
+      }
+
+      if (cycles < 350) {
+
+        return { state: "CRITICAL", action: "Replace within 50 cycles", urgency: "Urgent" };
+
+      }
+
+      if (cycles < 370) {
+
+        return { state: "IMMINENT", action: "Replace immediately", urgency: "Critical" };
+
+      }
+
+      return { state: "FAILED", action: "Overdue - Replace NOW", urgency: "Emergency" };
+
+    }
+
+
+
+    function openWheelsAnalysisModal() {
+
+      wheelsAnalysisTableBody.innerHTML = "";
+
+
+
+      aircraftData.forEach((item) => {
+
+        WHEEL_NUMBERS.forEach((wheel) => {
+
+          const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"][data-wheel="${wheel}"]`);
+
+          const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
+
+          const parsed = Number(String(lastCycleRaw).replace(/,/g, ""));
+
+          const safeCycles = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+
+          const analysis = getWheelsAnalysisForCycles(safeCycles);
+
+          const severity = getSeverityFromWheelState(analysis.state);
+
+
+
+          const tr = document.createElement("tr");
+
+          const estimatedRemovalDate = estimateRemovalDate(safeCycles, 370, 5);
+
+          tr.innerHTML = `
+
+            <td><strong>${item.ac}</strong></td>
+
+            <td>Wheel ${wheel}</td>
+
+            <td><span class="badge ${severityToClass(severity)}">${safeCycles}</span></td>
+
+            <td><span class="badge ${severityToClass(severity)}">${analysis.state}</span></td>
+
+            <td>${analysis.action}</td>
+
+            <td>${analysis.urgency}</td>
+
+            <td>${estimatedRemovalDate}</td>
+
+          `;
+
+          wheelsAnalysisTableBody.appendChild(tr);
+
+        });
+
+      });
+
+
+
+      wheelsModalOverlay.classList.add("show");
+
+    }
+
+
+
+    function closeWheelsAnalysisModal() {
+
+      wheelsModalOverlay.classList.remove("show");
+
+    }
+
+
+
+    function getCurrentAnalysisRows() {
+
+      const rows = [];
+
+      aircraftData.forEach((item) => {
+
+        WHEEL_NUMBERS.forEach((wheel) => {
+
+          const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"][data-wheel="${wheel}"]`);
+
+          const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
+
+          const cycles = Number(String(lastCycleRaw).replace(/,/g, ""));
+
+          const safeCycles = Number.isFinite(cycles) && cycles >= 0 ? cycles : 0;
+
+          rows.push({
+
+            ac: item.ac,
+
+            type: item.type,
+
+            wheel,
+
+            cycles: safeCycles,
+
+            brakes: getAnalysisForCycles(safeCycles),
+
+            wheels: getWheelsAnalysisForCycles(safeCycles)
+
+          });
+
+        });
+
+      });
+
+      return rows;
+
+    }
+
+
+
+    function buildReportsText() {
+
+      const rows = getCurrentAnalysisRows();
+
+      const lines = [];
+
+      lines.push("Aircraft Weibull Reports");
+
+      lines.push(`Generated: ${new Date().toLocaleString()}`);
+
+      lines.push("");
+
+
+
+      lines.push("=== Brakes Analysis ===");
+
+      rows.forEach((row) => {
+
+        lines.push(`${row.ac} | Wheel ${row.wheel} | Last cycle count: ${row.cycles} | Failure Probability: ${row.brakes.probability} | Action: ${row.brakes.action}`);
+
+      });
+
+
+
+      lines.push("");
+
+      lines.push("=== Wheels Analysis ===");
+
+      rows.forEach((row) => {
+
+        lines.push(`${row.ac} | Wheel ${row.wheel} | Last cycle count: ${row.cycles} | State: ${row.wheels.state} | Action Required: ${row.wheels.action} | Urgency: ${row.wheels.urgency}`);
+
+      });
+
+
+
+      return lines.join("\n");
+
+    }
+
+
+
+    function buildStyledReportHtml() {
+
+      const rows = getCurrentAnalysisRows();
+
+      const generatedAt = new Date().toLocaleString();
+
+
+
+      const brakesRowsHtml = rows.map((row) => {
+
+        const severity = getSeverityFromBrakesAction(row.brakes.action);
+
+        return `
+
+        <tr>
+
+          <td><strong>${row.ac}</strong></td>
+
+          <td>Wheel ${row.wheel}</td>
+
+          <td><span class="badge ${severityToClass(severity)}">${row.cycles}</span></td>
+
+          <td><span class="badge ${severityToClass(severity)}">${row.brakes.probability}</span></td>
+
+          <td>${row.brakes.action}</td>
+
+          <td>${estimateRemovalDate(row.cycles, 1500, 5)}</td>
+
+        </tr>
+
+      `;
+
+      }).join("");
+
+
+
+      const wheelsRowsHtml = rows.map((row) => {
+
+        const severity = getSeverityFromWheelState(row.wheels.state);
+
+        return `
+
+        <tr>
+
+          <td><strong>${row.ac}</strong></td>
+
+          <td>Wheel ${row.wheel}</td>
+
+          <td><span class="badge ${severityToClass(severity)}">${row.cycles}</span></td>
+
+          <td><span class="badge ${severityToClass(severity)}">${row.wheels.state}</span></td>
+
+          <td>${row.wheels.action}</td>
+
+          <td>${row.wheels.urgency}</td>
+
+          <td>${estimateRemovalDate(row.cycles, 370, 5)}</td>
+
+        </tr>
+
+      `;
+
+      }).join("");
+
+
+
+      return `<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <title>Aircraft Weibull Report</title>
+
+  <style>
+
+    :root {
+
+      --brand-red: #e30613;
+
+      --brand-dark: #1f1f1f;
+
+      --brand-light: #f7f7f8;
+
+      --white: #fff;
+
+      --border: #e5e5e5;
+
     }
 
     body {
+
       margin: 0;
+
       font-family: Arial, Helvetica, sans-serif;
-      color: var(--text);
+
       background: linear-gradient(180deg, #fafafa 0%, #f1f3f5 100%);
-    }
 
-    .topbar {
-      background: var(--brand-red);
-      color: var(--white);
-      padding: 14px 20px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      font-size: 1.1rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    }
+      color: #222;
 
-    .container {
-      max-width: 1280px;
-      margin: 28px auto;
-      padding: 0 12px;
-    }
-
-    .hero {
-      background: var(--white);
-      border-radius: 14px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-      overflow: hidden;
-      border: 1px solid #eee;
-    }
-
-    .hero-head {
-      background: var(--brand-dark);
-      color: var(--white);
       padding: 20px;
+
     }
 
-    .hero-head h1 {
+    .card {
+
+      max-width: 1120px;
+
+      margin: 0 auto;
+
+      background: #ffffff;
+
+      border-radius: 16px;
+
+      border: 1px solid #ececec;
+
+      overflow: hidden;
+
+      box-shadow: 0 14px 34px rgba(25, 25, 25, 0.12);
+
+    }
+
+    .head {
+
+      background: linear-gradient(135deg, #171717 0%, #2a2a2a 100%);
+
+      color: #fff;
+
+      padding: 22px 24px;
+
+    }
+
+    .head h1 {
+
       margin: 0;
-      font-size: 1.6rem;
-      font-weight: 800;
+
+      font-size: 1.45rem;
+
+      letter-spacing: 0.2px;
+
     }
 
-    .hero-head p {
+    .head p {
+
       margin: 8px 0 0;
+
+      font-size: 0.92rem;
+
       opacity: 0.9;
-      font-size: 0.95rem;
+
     }
 
-    .content {
+    .section {
+
       padding: 18px;
-      background: var(--brand-light);
+
+      background: #f8f9fb;
+
+      border-top: 1px solid #ededed;
+
+    }
+
+    .section-title {
+
+      margin: 0 0 12px;
+
+      font-size: 1.02rem;
+
+      font-weight: 800;
+
+      color: #181818;
+
+      letter-spacing: 0.2px;
+
     }
 
     .table-wrap {
-      background: var(--white);
+
+      background: #fff;
+
+      border: 1px solid #e7e7e7;
+
       border-radius: 12px;
+
       overflow: hidden;
-      border: 1px solid var(--border);
+
     }
 
     table {
+
       width: 100%;
+
       border-collapse: collapse;
-      table-layout: fixed;
+
     }
 
     thead th {
-      background: var(--brand-red);
-      color: var(--white);
-      text-align: left;
-      padding: 10px 8px;
-      font-size: 0.8rem;
-      letter-spacing: 0.1px;
-      line-height: 1.15;
-      word-break: break-word;
-    }
 
-    tbody td {
-      padding: 8px 8px;
-      border-bottom: 1px solid #f0f0f0;
-      font-size: 0.82rem;
+      background: #e30613;
+
+      color: #fff;
+
+      text-align: left;
+
+      padding: 12px 14px;
+
+      font-size: 0.86rem;
+
+      text-transform: uppercase;
+
+      letter-spacing: 0.35px;
+
     }
 
     tbody tr:nth-child(even) {
-      background: #fcfcfc;
+
+      background: #fcfcfd;
+
     }
 
-    tbody tr:hover {
-      background: #fff4f5;
+    tbody td {
+
+      padding: 11px 14px;
+
+      border-bottom: 1px solid #f0f1f3;
+
+      font-size: 0.88rem;
+
+      color: #2a2a2a;
+
+    }
+
+    .meta {
+
+      display: grid;
+
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+
+      gap: 10px;
+
+      margin: 14px 0 0;
+
+    }
+
+    .meta-card {
+
+      background: rgba(255, 255, 255, 0.14);
+
+      border: 1px solid rgba(255, 255, 255, 0.25);
+
+      border-radius: 10px;
+
+      padding: 10px 12px;
+
+    }
+
+    .meta-label {
+
+      font-size: 0.72rem;
+
+      opacity: 0.85;
+
+      text-transform: uppercase;
+
+      letter-spacing: 0.5px;
+
+    }
+
+    .meta-value {
+
+      font-size: 0.98rem;
+
+      font-weight: 700;
+
+      margin-top: 4px;
+
     }
 
     .badge {
+
       display: inline-block;
-      background: #ffe7e9;
-      color: #b0000a;
-      padding: 3px 8px;
+
+      padding: 4px 10px;
+
       border-radius: 999px;
+
       font-weight: 700;
-      font-size: 0.75rem;
+
+      font-size: 0.78rem;
+
+      border: 1px solid #d9d9d9;
+
     }
 
-    .cycle-input {
-      width: 100%;
-      min-width: 72px;
-      padding: 6px 7px;
-      border: 1px solid #d8d8d8;
-      border-radius: 7px;
-      font-size: 0.82rem;
-      outline: none;
+    .status-green {
+
+      background: #e9f8ee;
+
+      color: #0a7a2f;
+
+      border-color: #bfe8cb;
+
     }
 
-    .cycle-input:focus {
-      border-color: var(--brand-red);
-      box-shadow: 0 0 0 2px rgba(227, 6, 19, 0.12);
+    .status-yellow {
+
+      background: #fff7e6;
+
+      color: #8a5a00;
+
+      border-color: #ffe2a8;
+
     }
 
-    .token-row {
-      margin-top: 14px;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 8px;
+    .status-red {
+
+      background: #ffe9ec;
+
+      color: #b00020;
+
+      border-color: #ffc3cc;
+
     }
 
-    .token-input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #d8d8d8;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      outline: none;
-    }
-
-    .token-input:focus {
-      border-color: var(--brand-red);
-      box-shadow: 0 0 0 2px rgba(227, 6, 19, 0.12);
-    }
-
-    .actions {
-      margin-top: 14px;
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      border: none;
-      border-radius: 10px;
-      padding: 10px 16px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .btn-primary {
-      background: var(--brand-red);
-      color: #fff;
-      box-shadow: 0 4px 12px rgba(227, 6, 19, 0.25);
-    }
-
-    .btn-secondary {
-      background: #2f2f2f;
-      color: #fff;
-    }
-
-    .btn:hover {
-      filter: brightness(0.96);
-    }
-
-    .status-msg {
-      width: 100%;
-      font-size: 0.88rem;
-      color: #333;
-      text-align: right;
-      margin-top: 6px;
-      white-space: pre-wrap;
-    }
-
-    .footer-note {
-      margin-top: 10px;
-      font-size: 0.85rem;
-      color: #666;
-      text-align: right;
-    }
-
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.45);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: 16px;
-    }
-
-    .modal-overlay.show {
-      display: flex;
-    }
-
-    .modal {
-      width: min(1000px, 100%);
-      max-height: 90vh;
-      overflow: auto;
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
-      border: 1px solid #e8e8e8;
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 16px;
-      background: var(--brand-red);
-      color: #fff;
-    }
-
-    .modal-title {
-      margin: 0;
-      font-size: 1.05rem;
-      font-weight: 800;
-    }
-
-    .modal-close {
-      border: none;
-      background: #fff;
-      color: var(--brand-red);
-      font-weight: 800;
-      border-radius: 8px;
-      padding: 6px 10px;
-      cursor: pointer;
-    }
-
-    .modal-body {
-      padding: 14px 16px 18px;
-    }
-
-    .analysis-table-wrap {
-      border: 1px solid #ececec;
-      border-radius: 10px;
-      overflow: hidden;
-      margin-bottom: 12px;
-    }
-
-    .analysis-note {
-      font-size: 0.86rem;
-      color: #555;
-      line-height: 1.4;
-    }
-
-    @media (max-width: 640px) {
-      .hero-head h1 {
-        font-size: 1.25rem;
-      }
-
-      thead th, tbody td {
-        padding: 11px 10px;
-      }
-
-      .topbar {
-        font-size: 1rem;
-      }
-
-      .actions {
-        justify-content: stretch;
-      }
-
-      .btn {
-        width: 100%;
-      }
-
-      .status-msg {
-        text-align: left;
-      }
-    }
   </style>
+
 </head>
+
 <body>
-  <div class="topbar">APN 206</div>
 
-  <main class="container">
-    <section class="hero">
-      <div class="hero-head">
-        <h1>Preventive maintenance of brakes and wheels for the A320</h1>
+  <div class="card">
+
+    <div class="head">
+
+      <h1>Aircraft Brakes & Wheels Weibull Report</h1>
+
+      <p>Generated: ${generatedAt}</p>
+
+      <div class="meta">
+
+        <div class="meta-card">
+
+          <div class="meta-label">Total Aircraft</div>
+
+          <div class="meta-value">${aircraftData.length}</div>
+
+        </div>
+
+        <div class="meta-card">
+
+          <div class="meta-label">Wheels Reviewed</div>
+
+          <div class="meta-value">${rows.length}</div>
+
+        </div>
+
+        <div class="meta-card">
+
+          <div class="meta-label">Document Type</div>
+
+          <div class="meta-value">Maintenance Report</div>
+
+        </div>
+
       </div>
 
-      <div class="content">
-        <div class="table-wrap">
-          <table aria-label="Aircraft Data">
-            <thead>
-              <tr>
-                <th style="width: 7%;">A/C</th>
-                <th style="width: 7%;">AC-Type</th>
-                <th style="width: 8%;">Last cycle count Wheel 1</th>
-                <th style="width: 8%;">Last cycle count Wheel 2</th>
-                <th style="width: 8%;">Last cycle count Wheel 3</th>
-                <th style="width: 8%;">Last cycle count Wheel 4</th>
-                <th style="width: 13.5%;">Number of cycle of the current day Wheel 1</th>
-                <th style="width: 13.5%;">Number of cycle of the current day Wheel 2</th>
-                <th style="width: 13.5%;">Number of cycle of the current day Wheel 3</th>
-                <th style="width: 13.5%;">Number of cycle of the current day Wheel 4</th>
-              </tr>
-            </thead>
-            <tbody id="aircraftTableBody"></tbody>
-          </table>
-        </div>
-
-       
-      
-
-        <div class="token-row">
-          <input id="githubToken" class="token-input" type="password" placeholder="GitHub Personal Access Token (repo scope)" />
-          <input id="reportEmail" class="token-input" type="email" placeholder="Recipient email for reports" />
-        </div>
-
-        <div class="actions">
-          <button id="loadGithubBtn" class="btn btn-secondary" type="button">Load data.csv from GitHub</button>
-          <button id="saveGithubBtn" class="btn btn-primary" type="button">Save Weekly Data to GitHub</button>
-          <button id="analyzeBtn" class="btn btn-secondary" type="button">analyze brakes using weibull</button>
-          <button id="analyzeWheelsBtn" class="btn btn-secondary" type="button">Analyze wheels using weibull</button>
-          <button id="resetBtn" class="btn btn-secondary" type="button">Reset</button>
-          <button id="sendReportsBtn" class="btn btn-secondary" type="button">Send Reports</button>
-          <div id="saveStatus" class="status-msg"></div>
-        </div>
-
-        <div class="footer-note">Total aircraft: <span id="totalCount">0</span></div>
-      </div>
-    </section>
-  </main>
-
-  <div id="analysisModalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="analysisModalTitle">
-    <div class="modal">
-      <div class="modal-header">
-        <h2 id="analysisModalTitle" class="modal-title">Aircraft Analysis</h2>
-        <button id="analysisModalCloseBtn" class="modal-close" type="button" aria-label="Close analysis popup">Close</button>
-      </div>
-      <div class="modal-body">
-        <div class="analysis-table-wrap">
-          <table aria-label="Aircraft analysis results">
-            <thead>
-              <tr>
-                <th>A/C</th>
-                <th>Wheel</th>
-                <th>Last cycle count</th>
-                <th>Failure Probability</th>
-                <th>Action</th>
-                <th>Estimated removal date</th>
-              </tr>
-            </thead>
-            <tbody id="analysisTableBody"></tbody>
-          </table>
-        </div>
-        <div class="analysis-note">
-          Rules used:
-          0–650 cycles → < 5% (No action needed),
-          650–900 cycles → 5%–10% (Monitor normally),
-          900–1,200 cycles → 10%–20% (Inspect at next maintenance),
-          1,200–1,500 cycles → 20%–40% (Schedule replacement soon),
-          > 1,500 cycles → > 40% (Replace immediately).
-        </div>
-      </div>
     </div>
+
+
+
+    <div class="section">
+
+      <h2 class="section-title">Brakes Analysis</h2>
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>A/C</th>
+
+              <th>Wheel</th>
+
+              <th>Last cycle count</th>
+
+              <th>Failure Probability</th>
+
+              <th>Action</th>
+
+              <th>Estimated removal date</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>${brakesRowsHtml}</tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+
+
+    <div class="section">
+
+      <h2 class="section-title">Wheels Analysis</h2>
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>A/C</th>
+
+              <th>Wheel</th>
+
+              <th>Last cycle count</th>
+
+              <th>State</th>
+
+              <th>Action Required</th>
+
+              <th>Urgency</th>
+
+              <th>Estimated removal date</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>${wheelsRowsHtml}</tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
   </div>
 
-  <div id="wheelsModalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="wheelsModalTitle">
-    <div class="modal">
-      <div class="modal-header">
-        <h2 id="wheelsModalTitle" class="modal-title">Wheel Weibull Analysis</h2>
-        <button id="wheelsModalCloseBtn" class="modal-close" type="button" aria-label="Close wheels analysis popup">Close</button>
-      </div>
-      <div class="modal-body">
-        <div class="analysis-table-wrap">
-          <table aria-label="Aircraft wheels analysis results">
-            <thead>
-              <tr>
-                <th>A/C</th>
-                <th>Wheel</th>
-                <th>Last cycle count</th>
-                <th>State</th>
-                <th>Action Required</th>
-                <th>Urgency</th>
-                <th>Estimated removal date</th>
-              </tr>
-            </thead>
-            <tbody id="wheelsAnalysisTableBody"></tbody>
-          </table>
-        </div>
-        <div class="analysis-note">
-          Wheel rules used:
-          0–250 GOOD, 250–280 MONITOR, 280–300 ATTENTION, 300–320 WARNING,
-          320–350 CRITICAL, 350–370 IMMINENT, 370+ FAILED.
-        </div>
-      </div>
-    </div>
-  </div>
+</body>
 
-  <script>
-    const aircraftData = [
-      { ac: "CN-NMH", type: "A320" },
-      { ac: "CN-NMI", type: "A320" },
-      { ac: "CN-NMJ", type: "A320" },
-      { ac: "CN-NML", type: "A320" },
-      { ac: "CN-NMN", type: "A320" },
-      { ac: "CN-NMO", type: "A320" },
-      { ac: "CN-NMP", type: "A320" },
-      { ac: "CN-NMQ", type: "A320" },
-      { ac: "CN-NMS", type: "A320" },
-      { ac: "CN-NMT", type: "A320" }
-    ];
+</html>`;
 
-    const tableBody = document.getElementById("aircraftTableBody");
-    const totalCount = document.getElementById("totalCount");
-    const loadGithubBtn = document.getElementById("loadGithubBtn");
-    const saveGithubBtn = document.getElementById("saveGithubBtn");
-    const analyzeBtn = document.getElementById("analyzeBtn");
-    const analyzeWheelsBtn = document.getElementById("analyzeWheelsBtn");
-    const resetBtn = document.getElementById("resetBtn");
-    const sendReportsBtn = document.getElementById("sendReportsBtn");
-    const reportEmailInput = document.getElementById("reportEmail");
-    const saveStatus = document.getElementById("saveStatus");
-    const analysisModalOverlay = document.getElementById("analysisModalOverlay");
-    const analysisModalCloseBtn = document.getElementById("analysisModalCloseBtn");
-    const analysisTableBody = document.getElementById("analysisTableBody");
-    const wheelsModalOverlay = document.getElementById("wheelsModalOverlay");
-    const wheelsModalCloseBtn = document.getElementById("wheelsModalCloseBtn");
-    const wheelsAnalysisTableBody = document.getElementById("wheelsAnalysisTableBody");
-
-    const OWNER = "charafMoustakim";
-    const REPO = "aircraft";
-    const BRANCH = "main";
-    const FILE_PATH = "data.csv";
-    const GITHUB_CONTENT_API_URL = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}?ref=${encodeURIComponent(BRANCH)}`;
-    const GITHUB_RAW_CSV_URL = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}/${FILE_PATH}`;
-
-    let csvRows = [];
-    let lastLoadedCsvFingerprint = "";
-    const WHEEL_NUMBERS = [1, 2, 3, 4];
-
-    function getWeekNumber(date = new Date()) {
-      const tempDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-      const dayNum = tempDate.getUTCDay() || 7;
-      tempDate.setUTCDate(tempDate.getUTCDate() + 4 - dayNum);
-      const yearStart = new Date(Date.UTC(tempDate.getUTCFullYear(), 0, 1));
-      return Math.ceil((((tempDate - yearStart) / 86400000) + 1) / 7);
     }
 
-    function normalizeAircraft(value) {
-      return String(value ?? "").trim().toUpperCase();
-    }
 
-    function parseCycleValue(value) {
-      const cleaned = String(value ?? "")
-        .replace(/\s+/g, "")
-        .replace(/,/g, ".");
-      const n = Number(cleaned);
-      if (!Number.isFinite(n) || n < 0) return null;
-      return n;
-    }
 
-    function parseCSVLine(line) {
-      const out = [];
-      let current = "";
-      let inQuotes = false;
+    function buildOutlookEmailHtml() {
 
-      for (let i = 0; i < line.length; i++) {
-        const ch = line[i];
-        if (ch === '"') {
-          if (inQuotes && line[i + 1] === '"') {
-            current += '"';
-            i++;
-          } else {
-            inQuotes = !inQuotes;
-          }
-        } else if (ch === "," && !inQuotes) {
-          out.push(current);
-          current = "";
-        } else {
-          current += ch;
-        }
-      }
-      out.push(current);
-      return out;
-    }
-
-    function parseCSV(text) {
-      const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n").filter(l => l.trim() !== "");
-      if (lines.length === 0) return [];
-
-      const headers = parseCSVLine(lines[0]).map(h => h.trim());
-      const rows = [];
-
-      for (let i = 1; i < lines.length; i++) {
-        const values = parseCSVLine(lines[i]);
-        const row = {};
-        headers.forEach((h, idx) => {
-          row[h] = (values[idx] ?? "").trim();
-        });
-        rows.push(row);
-      }
-
-      return rows;
-    }
-
-    function csvEscape(value) {
-      const str = String(value ?? "");
-      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
-        return `"${str.replace(/"/g, '""')}"`;
-      }
-      return str;
-    }
-
-    function wheelLastKey(wheel) {
-      return `Last cycle count Wheel ${wheel}`;
-    }
-
-    function wheelCurrentKey(wheel) {
-      return `Number of cycle of the current day Wheel ${wheel}`;
-    }
-
-    function toCSV(rows) {
-      const headers = ["Date", "Year", "Week", "Aircraft", "AC-Type"];
-      WHEEL_NUMBERS.forEach((wheel) => headers.push(wheelLastKey(wheel)));
-      WHEEL_NUMBERS.forEach((wheel) => headers.push(wheelCurrentKey(wheel)));
-
-      const lines = [headers.join(",")];
-      rows.forEach((row) => {
-        const line = headers.map((h) => csvEscape(row[h] ?? "")).join(",");
-        lines.push(line);
-      });
-      return lines.join("\n");
-    }
-
-    function extractWheelCycleTotals(rows) {
-      const totals = {};
-
-      aircraftData.forEach((item) => {
-        totals[normalizeAircraft(item.ac)] = { 1: 0, 2: 0, 3: 0, 4: 0 };
-      });
-
-      rows.forEach((row) => {
-        const ac = normalizeAircraft(row.Aircraft ?? row["A/C"] ?? row.ac ?? "");
-        if (!ac || !(ac in totals)) return;
-
-        WHEEL_NUMBERS.forEach((wheel) => {
-          const cycleVal = parseCycleValue(
-            row[wheelCurrentKey(wheel)] ??
-            row[wheelLastKey(wheel)] ??
-            null
-          );
-
-          if (cycleVal === null) return;
-          totals[ac][wheel] += cycleVal;
-        });
-      });
-
-      return totals;
-    }
-
-    function renderLastCycleCounts(cycleMap) {
-      aircraftData.forEach((item) => {
-        const acKey = normalizeAircraft(item.ac);
-        WHEEL_NUMBERS.forEach((wheel) => {
-          const el = document.querySelector(`[data-last-cycle="${item.ac}"][data-wheel="${wheel}"]`);
-          if (!el) return;
-          const value = cycleMap?.[acKey]?.[wheel];
-          el.textContent = value === null || value === undefined ? "0" : String(value);
-        });
-      });
-    }
-
-    function resetCurrentDayCycleInputs() {
-      const cycleInputs = document.querySelectorAll(".cycle-input");
-      cycleInputs.forEach((input) => {
-        input.value = "0";
-      });
-    }
-
-    function resetLastCycleCountsToZero() {
-      aircraftData.forEach((item) => {
-        WHEEL_NUMBERS.forEach((wheel) => {
-          const el = document.querySelector(`[data-last-cycle="${item.ac}"][data-wheel="${wheel}"]`);
-          if (el) el.textContent = "0";
-        });
-      });
-
-      if (Array.isArray(csvRows) && csvRows.length) {
-        csvRows = csvRows.map((row) => {
-          const ac = normalizeAircraft(row.Aircraft ?? row["A/C"] ?? row.ac ?? "");
-          if (!ac) return row;
-
-          const updatedRow = { ...row };
-          WHEEL_NUMBERS.forEach((wheel) => {
-            if (wheelCurrentKey(wheel) in updatedRow) {
-              updatedRow[wheelCurrentKey(wheel)] = "0";
-            }
-            if (wheelLastKey(wheel) in updatedRow) {
-              updatedRow[wheelLastKey(wheel)] = "0";
-            }
-          });
-          return updatedRow;
-        });
-      }
-
-      saveStatus.textContent = "Last cycle count reset to 0 for all aircraft wheels.";
-      saveStatus.style.color = "#333";
-    }
-
-    function getAnalysisForCycles(cycles) {
-      if (cycles <= 650) {
-        return { status: "Excellent", probability: "< 5%", action: "No action needed" };
-      }
-      if (cycles <= 900) {
-        return { status: "Good", probability: "5% - 10%", action: "Monitor normally" };
-      }
-      if (cycles <= 1200) {
-        return { status: "Marginal", probability: "10% - 20%", action: "Inspect at next maintenance" };
-      }
-      if (cycles <= 1500) {
-        return { status: "Warning", probability: "20% - 40%", action: "Schedule replacement soon" };
-      }
-      return { status: "Replace Now", probability: "> 40%", action: "Replace immediately" };
-    }
-
-    function formatDate(date) {
-      return date.toISOString().split("T")[0];
-    }
-
-    function estimateRemovalDate(currentCycles, threshold, cyclesPerDay = 5) {
-      const remaining = threshold - currentCycles;
-      if (remaining <= 0) return "Immediate";
-      const days = Math.ceil(remaining / cyclesPerDay);
-      const d = new Date();
-      d.setDate(d.getDate() + days);
-      return formatDate(d);
-    }
-
-    function openAnalysisModal() {
-      analysisTableBody.innerHTML = "";
-
-      aircraftData.forEach((item) => {
-        WHEEL_NUMBERS.forEach((wheel) => {
-          const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"][data-wheel="${wheel}"]`);
-          const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
-          const parsed = Number(String(lastCycleRaw).replace(/,/g, ""));
-          const safeCycles = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-          const analysis = getAnalysisForCycles(safeCycles);
-
-          const tr = document.createElement("tr");
-          const estimatedRemovalDate = estimateRemovalDate(safeCycles, 1500, 5);
-          tr.innerHTML = `
-            <td><strong>${item.ac}</strong></td>
-            <td>Wheel ${wheel}</td>
-            <td>${safeCycles}</td>
-            <td><span class="badge">${analysis.probability}</span></td>
-            <td>${analysis.action}</td>
-            <td>${estimatedRemovalDate}</td>
-          `;
-          analysisTableBody.appendChild(tr);
-        });
-      });
-
-      analysisModalOverlay.classList.add("show");
-    }
-
-    function closeAnalysisModal() {
-      analysisModalOverlay.classList.remove("show");
-    }
-
-    function getWheelsAnalysisForCycles(cycles) {
-      if (cycles < 250) {
-        return { state: "GOOD", action: "No action needed", urgency: "None" };
-      }
-      if (cycles < 280) {
-        return { state: "MONITOR", action: "Check every inspection", urgency: "Low" };
-      }
-      if (cycles < 300) {
-        return { state: "ATTENTION", action: "Increased monitoring", urgency: "Medium" };
-      }
-      if (cycles < 320) {
-        return { state: "WARNING", action: "Plan replacement soon", urgency: "High" };
-      }
-      if (cycles < 350) {
-        return { state: "CRITICAL", action: "Replace within 50 cycles", urgency: "Urgent" };
-      }
-      if (cycles < 370) {
-        return { state: "IMMINENT", action: "Replace immediately", urgency: "Critical" };
-      }
-      return { state: "FAILED", action: "Overdue - Replace NOW", urgency: "Emergency" };
-    }
-
-    function openWheelsAnalysisModal() {
-      wheelsAnalysisTableBody.innerHTML = "";
-
-      aircraftData.forEach((item) => {
-        WHEEL_NUMBERS.forEach((wheel) => {
-          const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"][data-wheel="${wheel}"]`);
-          const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
-          const parsed = Number(String(lastCycleRaw).replace(/,/g, ""));
-          const safeCycles = Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
-          const analysis = getWheelsAnalysisForCycles(safeCycles);
-
-          const tr = document.createElement("tr");
-          const estimatedRemovalDate = estimateRemovalDate(safeCycles, 370, 5);
-          tr.innerHTML = `
-            <td><strong>${item.ac}</strong></td>
-            <td>Wheel ${wheel}</td>
-            <td>${safeCycles}</td>
-            <td><span class="badge">${analysis.state}</span></td>
-            <td>${analysis.action}</td>
-            <td>${analysis.urgency}</td>
-            <td>${estimatedRemovalDate}</td>
-          `;
-          wheelsAnalysisTableBody.appendChild(tr);
-        });
-      });
-
-      wheelsModalOverlay.classList.add("show");
-    }
-
-    function closeWheelsAnalysisModal() {
-      wheelsModalOverlay.classList.remove("show");
-    }
-
-    function getCurrentAnalysisRows() {
-      const rows = [];
-      aircraftData.forEach((item) => {
-        WHEEL_NUMBERS.forEach((wheel) => {
-          const lastCycleEl = document.querySelector(`[data-last-cycle="${item.ac}"][data-wheel="${wheel}"]`);
-          const lastCycleRaw = (lastCycleEl?.textContent || "0").trim();
-          const cycles = Number(String(lastCycleRaw).replace(/,/g, ""));
-          const safeCycles = Number.isFinite(cycles) && cycles >= 0 ? cycles : 0;
-          rows.push({
-            ac: item.ac,
-            type: item.type,
-            wheel,
-            cycles: safeCycles,
-            brakes: getAnalysisForCycles(safeCycles),
-            wheels: getWheelsAnalysisForCycles(safeCycles)
-          });
-        });
-      });
-      return rows;
-    }
-
-    function buildReportsText() {
       const rows = getCurrentAnalysisRows();
-      const lines = [];
-      lines.push("Aircraft Weibull Reports");
-      lines.push(`Generated: ${new Date().toLocaleString()}`);
-      lines.push("");
 
-      lines.push("=== Brakes Analysis ===");
-      rows.forEach((row) => {
-        lines.push(`${row.ac} | Wheel ${row.wheel} | Last cycle count: ${row.cycles} | Failure Probability: ${row.brakes.probability} | Action: ${row.brakes.action}`);
-      });
-
-      lines.push("");
-      lines.push("=== Wheels Analysis ===");
-      rows.forEach((row) => {
-        lines.push(`${row.ac} | Wheel ${row.wheel} | Last cycle count: ${row.cycles} | State: ${row.wheels.state} | Action Required: ${row.wheels.action} | Urgency: ${row.wheels.urgency}`);
-      });
-
-      return lines.join("\n");
-    }
-
-    function buildStyledReportHtml() {
-      const rows = getCurrentAnalysisRows();
       const generatedAt = new Date().toLocaleString();
 
+
+
+      const tableStyle = "width:100%;border-collapse:collapse;font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#222;";
+
+      const thStyle = "background:#e30613;color:#ffffff;border:1px solid #d9d9d9;padding:8px;text-align:left;";
+
+      const tdStyle = "border:1px solid #d9d9d9;padding:7px;vertical-align:top;";
+
+      const sectionTitleStyle = "margin:18px 0 8px 0;font-size:16px;font-weight:700;color:#1f1f1f;";
+
+      const containerStyle = "font-family:Arial,Helvetica,sans-serif;color:#222;line-height:1.35;";
+
+      const metaStyle = "font-size:13px;color:#444;margin:2px 0;";
+
+
+
       const brakesRowsHtml = rows.map((row) => `
+
         <tr>
-          <td><strong>${row.ac}</strong></td>
-          <td>Wheel ${row.wheel}</td>
-          <td>${row.cycles}</td>
-          <td><span class="badge">${row.brakes.probability}</span></td>
-          <td>${row.brakes.action}</td>
+
+          <td style="${tdStyle}"><strong>${row.ac}</strong></td>
+
+          <td style="${tdStyle}">Wheel ${row.wheel}</td>
+
+          <td style="${tdStyle}">${row.cycles}</td>
+
+          <td style="${tdStyle}">${row.brakes.probability}</td>
+
+          <td style="${tdStyle}">${row.brakes.action}</td>
+
+          <td style="${tdStyle}">${estimateRemovalDate(row.cycles, 1500, 5)}</td>
+
         </tr>
+
       `).join("");
+
+
 
       const wheelsRowsHtml = rows.map((row) => `
+
         <tr>
-          <td><strong>${row.ac}</strong></td>
-          <td>Wheel ${row.wheel}</td>
-          <td>${row.cycles}</td>
-          <td><span class="badge">${row.wheels.state}</span></td>
-          <td>${row.wheels.action}</td>
-          <td>${row.wheels.urgency}</td>
+
+          <td style="${tdStyle}"><strong>${row.ac}</strong></td>
+
+          <td style="${tdStyle}">Wheel ${row.wheel}</td>
+
+          <td style="${tdStyle}">${row.cycles}</td>
+
+          <td style="${tdStyle}">${row.wheels.state}</td>
+
+          <td style="${tdStyle}">${row.wheels.action}</td>
+
+          <td style="${tdStyle}">${row.wheels.urgency}</td>
+
+          <td style="${tdStyle}">${estimateRemovalDate(row.cycles, 370, 5)}</td>
+
         </tr>
+
       `).join("");
 
-      return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Aircraft Weibull Report</title>
-  <style>
-    :root {
-      --brand-red: #e30613;
-      --brand-dark: #1f1f1f;
-      --brand-light: #f7f7f8;
-      --white: #fff;
-      --border: #e5e5e5;
-    }
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(180deg, #fafafa 0%, #f1f3f5 100%);
-      color: #222;
-      padding: 20px;
-    }
-    .card {
-      max-width: 1100px;
-      margin: 0 auto;
-      background: var(--white);
-      border-radius: 14px;
-      border: 1px solid #eee;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-    }
-    .head {
-      background: var(--brand-dark);
-      color: #fff;
-      padding: 18px 20px;
-    }
-    .head h1 {
-      margin: 0;
-      font-size: 1.35rem;
-    }
-    .head p {
-      margin: 6px 0 0;
-      font-size: 0.9rem;
-      opacity: 0.92;
-    }
-    .section {
-      padding: 16px;
-      background: var(--brand-light);
-      border-top: 1px solid var(--border);
-    }
-    .section-title {
-      margin: 0 0 10px;
-      font-size: 1rem;
-      font-weight: 700;
-      color: #1f1f1f;
-    }
-    .table-wrap {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    thead th {
-      background: var(--brand-red);
-      color: #fff;
-      text-align: left;
-      padding: 12px 14px;
-      font-size: 0.9rem;
-    }
-    tbody td {
-      padding: 11px 14px;
-      border-bottom: 1px solid #f1f1f1;
-      font-size: 0.9rem;
-    }
-    .badge {
-      display: inline-block;
-      background: #ffe7e9;
-      color: #b0000a;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: 0.8rem;
-    }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="head">
-      <h1>Aircraft Brakes & Wheels Weibull Report</h1>
-      <p>Generated: ${generatedAt}</p>
-    </div>
 
-    <div class="section">
-      <h2 class="section-title">Brakes Analysis</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>A/C</th>
-              <th>Wheel</th>
-              <th>Last cycle count</th>
-              <th>Failure Probability</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>${brakesRowsHtml}</tbody>
-        </table>
-      </div>
-    </div>
 
-    <div class="section">
-      <h2 class="section-title">Wheels Analysis</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>A/C</th>
-              <th>Wheel</th>
-              <th>Last cycle count</th>
-              <th>State</th>
-              <th>Action Required</th>
-              <th>Urgency</th>
-            </tr>
-          </thead>
-          <tbody>${wheelsRowsHtml}</tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</body>
-</html>`;
+      return `
+
+<div style="${containerStyle}">
+
+  <h2 style="margin:0 0 10px 0;color:#1f1f1f;">Aircraft Brakes and Wheels Weibull Report</h2>
+
+  <p style="${metaStyle}"><strong>Generated:</strong> ${generatedAt}</p>
+
+  <p style="${metaStyle}"><strong>Total Aircraft:</strong> ${aircraftData.length} | <strong>Wheels Reviewed:</strong> ${rows.length}</p>
+
+
+
+  <h3 style="${sectionTitleStyle}">Brakes Analysis</h3>
+
+  <table role="presentation" style="${tableStyle}">
+
+    <tr>
+
+      <th style="${thStyle}">A/C</th>
+
+      <th style="${thStyle}">Wheel</th>
+
+      <th style="${thStyle}">Last cycle count</th>
+
+      <th style="${thStyle}">Failure Probability</th>
+
+      <th style="${thStyle}">Action</th>
+
+      <th style="${thStyle}">Estimated removal date</th>
+
+    </tr>
+
+    ${brakesRowsHtml}
+
+  </table>
+
+
+
+  <h3 style="${sectionTitleStyle}">Wheels Analysis</h3>
+
+  <table role="presentation" style="${tableStyle}">
+
+    <tr>
+
+      <th style="${thStyle}">A/C</th>
+
+      <th style="${thStyle}">Wheel</th>
+
+      <th style="${thStyle}">Last cycle count</th>
+
+      <th style="${thStyle}">State</th>
+
+      <th style="${thStyle}">Action Required</th>
+
+      <th style="${thStyle}">Urgency</th>
+
+      <th style="${thStyle}">Estimated removal date</th>
+
+    </tr>
+
+    ${wheelsRowsHtml}
+
+  </table>
+
+</div>`;
+
     }
 
-    function sendReportsByEmailDraft() {
-      const recipient = (reportEmailInput?.value || "").trim();
-      if (!recipient) {
-        saveStatus.textContent = "Enter recipient email before sending reports.";
-        saveStatus.style.color = "#b00020";
-        return;
-      }
 
-      // Option B: open Outlook/default email app directly without saving local file
-      const subject = "Aircraft Brakes and Wheels Weibull Report";
-      const body = buildReportsText();
-      const crlfBody = body.replace(/\n/g, "\r\n");
-      const to = encodeURIComponent(recipient);
-      const subj = encodeURIComponent(subject);
-      const bod = encodeURIComponent(crlfBody);
 
-      const mailtoUrl = `mailto:${to}?subject=${subj}&body=${bod}`;
-      window.location.href = mailtoUrl;
+    async function buildReportPdfBlob() {
 
-      saveStatus.textContent = "Outlook/default email app compose opened with report content.";
-      saveStatus.style.color = "#0a7a2f";
-    }
+      const htmlBody = buildStyledReportHtml();
 
-    function textToBase64(text) {
-      return btoa(unescape(encodeURIComponent(text)));
-    }
+      const wrapper = document.createElement("div");
 
-    function base64ToUtf8(base64) {
-      const normalized = String(base64 || "").replace(/\n/g, "");
-      return decodeURIComponent(escape(atob(normalized)));
-    }
+      wrapper.innerHTML = htmlBody;
 
-    async function getLatestMainCommitSha(token) {
-      const headers = { Accept: "application/vnd.github+json" };
-      if (token) headers.Authorization = `Bearer ${token}`;
-      const response = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/commits/${BRANCH}?t=${Date.now()}`, {
-        headers,
-        cache: "no-store"
-      });
-      if (!response.ok) {
-        throw new Error(`Latest commit fetch failed (${response.status})`);
-      }
-      const data = await response.json();
-      return String(data.sha || "");
-    }
 
-    async function getCurrentGithubFileMeta(token) {
-      const headers = {
-        Accept: "application/vnd.github+json"
+
+      const reportRoot = wrapper.querySelector(".card") || wrapper;
+
+      reportRoot.style.margin = "0";
+
+      reportRoot.style.maxWidth = "100%";
+
+
+
+      const options = {
+
+        margin: [8, 8, 8, 8],
+
+        filename: "Aircraft_Weibull_Report.pdf",
+
+        image: { type: "jpeg", quality: 0.98 },
+
+        html2canvas: { scale: 2, useCORS: true },
+
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+
       };
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
 
-      const response = await fetch(`${GITHUB_CONTENT_API_URL}&t=${Date.now()}`, {
-        headers,
-        cache: "no-store"
-      });
 
-      if (!response.ok) {
-        throw new Error(`GitHub metadata fetch failed (${response.status})`);
-      }
-      return response.json();
+
+      return html2pdf().set(options).from(reportRoot).outputPdf("blob");
+
     }
 
-    async function loadFromGitHub() {
+
+
+    async function blobToBase64(blob) {
+
+      return new Promise((resolve, reject) => {
+
+        const reader = new FileReader();
+
+        reader.onloadend = () => {
+
+          const result = String(reader.result || "");
+
+          const base64 = result.includes(",") ? result.split(",")[1] : result;
+
+          resolve(base64);
+
+        };
+
+        reader.onerror = reject;
+
+        reader.readAsDataURL(blob);
+
+      });
+
+    }
+
+
+
+    async function downloadReportPdf() {
+
       try {
-        saveStatus.textContent = "Loading latest data.csv from GitHub main...";
+
+        saveStatus.textContent = "Generating PDF report...";
+
         saveStatus.style.color = "#333";
 
+
+
+        const pdfBlob = await buildReportPdfBlob();
+
+        const url = URL.createObjectURL(pdfBlob);
+
+        const a = document.createElement("a");
+
+        a.href = url;
+
+        a.download = "Aircraft_Weibull_Report.pdf";
+
+        document.body.appendChild(a);
+
+        a.click();
+
+        a.remove();
+
+        URL.revokeObjectURL(url);
+
+
+
+        saveStatus.textContent = "PDF report downloaded successfully.";
+
+        saveStatus.style.color = "#0a7a2f";
+
+      } catch (error) {
+
+        saveStatus.textContent = `PDF generation failed: ${error.message}`;
+
+        saveStatus.style.color = "#b00020";
+
+      }
+
+    }
+
+
+
+    async function sendReportsByEmailDraft() {
+
+      const recipient = (reportEmailInput?.value || "").trim();
+
+      if (!recipient) {
+
+        saveStatus.textContent = "Enter recipient email before sending reports.";
+
+        saveStatus.style.color = "#b00020";
+
+        return;
+
+      }
+
+
+
+      const bridgeUrl = "http://127.0.0.1:8765/send-report";
+
+      const subject = "Aircraft Brakes and Wheels Weibull Report";
+
+      const htmlBody = buildOutlookEmailHtml();
+
+      const plainTextBody = buildReportsText();
+
+      const attachmentName = "Aircraft_Weibull_Report.pdf";
+
+
+
+      const openMailtoFallback = () => {
+
+        const encodedSubject = encodeURIComponent(subject);
+
+        const encodedBody = encodeURIComponent(plainTextBody);
+
+        const mailtoUrl = `mailto:${encodeURIComponent(recipient)}?subject=${encodedSubject}&body=${encodedBody}`;
+
+        window.location.href = mailtoUrl;
+
+      };
+
+
+
+      saveStatus.textContent = "Preparing report draft...";
+
+      saveStatus.style.color = "#333";
+
+
+
+      let bridgeAvailable = true;
+
+      try {
+
+        const bridgeCheck = await fetch(bridgeUrl, { method: "OPTIONS" });
+
+        if (!bridgeCheck.ok && bridgeCheck.status !== 204) {
+
+          bridgeAvailable = false;
+
+        }
+
+      } catch (_) {
+
+        bridgeAvailable = false;
+
+      }
+
+
+
+      if (!bridgeAvailable) {
+
+        openMailtoFallback();
+
+        saveStatus.textContent = "Outlook draft opened without attachment (bridge offline).";
+
+        saveStatus.style.color = "#b36b00";
+
+        return;
+
+      }
+
+
+
+      let pdfBase64 = "";
+
+      try {
+
+        const pdfBlob = await buildReportPdfBlob();
+
+        pdfBase64 = await blobToBase64(pdfBlob);
+
+      } catch (error) {
+
+        saveStatus.textContent = `Could not generate PDF attachment: ${error.message}`;
+
+        saveStatus.style.color = "#b00020";
+
+        return;
+
+      }
+
+
+
+      saveStatus.textContent = "Opening Outlook draft with attached PDF...";
+
+      saveStatus.style.color = "#333";
+
+
+
+      try {
+
+        const response = await fetch(bridgeUrl, {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type": "application/json"
+
+          },
+
+          body: JSON.stringify({
+
+            to: recipient,
+
+            subject,
+
+            html: htmlBody,
+
+            attachment_name: attachmentName,
+
+            attachment_base64: pdfBase64,
+
+            auto_send: false,
+
+            force_bridge_only: true
+
+          })
+
+        });
+
+
+
+        const result = await response.json().catch(() => ({}));
+
+
+
+        if (!response.ok || !result.ok) {
+
+          const errMsg = result?.error || `Bridge request failed (${response.status})`;
+
+          throw new Error(errMsg);
+
+        }
+
+
+
+        const attached = !!result?.attached;
+
+        saveStatus.textContent = attached
+
+          ? "Outlook draft opened successfully with PDF attachment."
+
+          : "Outlook draft opened, but PDF attachment is missing.";
+
+        saveStatus.style.color = attached ? "#0a7a2f" : "#b36b00";
+
+      } catch (error) {
+
+        console.error("Bridge send failed:", error);
+
+        openMailtoFallback();
+
+        saveStatus.textContent = "Outlook draft opened without attachment (bridge offline).";
+
+        saveStatus.style.color = "#b36b00";
+
+      }
+
+    }
+
+
+
+    function textToBase64(text) {
+
+      return btoa(unescape(encodeURIComponent(text)));
+
+    }
+
+
+
+    function base64ToUtf8(base64) {
+
+      const normalized = String(base64 || "").replace(/\n/g, "");
+
+      return decodeURIComponent(escape(atob(normalized)));
+
+    }
+
+
+
+    async function getLatestMainCommitSha(token) {
+
+      const headers = { Accept: "application/vnd.github+json" };
+
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const response = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/commits/${BRANCH}?t=${Date.now()}`, {
+
+        headers,
+
+        cache: "no-store"
+
+      });
+
+      if (!response.ok) {
+
+        throw new Error(`Latest commit fetch failed (${response.status})`);
+
+      }
+
+      const data = await response.json();
+
+      return String(data.sha || "");
+
+    }
+
+
+
+    async function getCurrentGithubFileMeta(token) {
+
+      const headers = {
+
+        Accept: "application/vnd.github+json"
+
+      };
+
+      if (token) {
+
+        headers.Authorization = `Bearer ${token}`;
+
+      }
+
+
+
+      const response = await fetch(`${GITHUB_CONTENT_API_URL}&t=${Date.now()}`, {
+
+        headers,
+
+        cache: "no-store"
+
+      });
+
+
+
+      if (!response.ok) {
+
+        throw new Error(`GitHub metadata fetch failed (${response.status})`);
+
+      }
+
+      return response.json();
+
+    }
+
+
+
+    async function loadFromGitHub() {
+
+      try {
+
+        saveStatus.textContent = "Loading latest data.csv from GitHub main...";
+
+        saveStatus.style.color = "#333";
+
+
+
         const token = ((document.getElementById("githubToken")?.value || "").trim()) || HARDCODED_GITHUB_TOKEN;
+
         let latestCommit = "";
+
         try {
+
           latestCommit = await getLatestMainCommitSha(token || undefined);
+
         } catch (_) {}
+
+
 
         let csvText = "";
+
         let loadedSha = "";
+
         let sourceUsed = "";
 
+
+
         const isValidCsv = (text) => {
+
           const firstLine = (text.split(/\r?\n/)[0] || "").toLowerCase();
+
           return text.trim().length > 0 && firstLine.includes(",") &&
+
             (firstLine.includes("aircraft") || firstLine.includes("a/c") || firstLine.includes("ac-type"));
+
         };
+
+
 
         const buildDefaultCsv = () => {
+
           const now = new Date();
+
           const dateStr = now.toISOString().split("T")[0];
+
           const year = String(now.getFullYear());
+
           const week = String(getWeekNumber(now));
 
+
+
           const rows = aircraftData.map((item) => {
+
             const row = {
+
               Date: dateStr,
+
               Year: year,
+
               Week: week,
+
               Aircraft: item.ac,
+
               "AC-Type": item.type
+
             };
+
             WHEEL_NUMBERS.forEach((wheel) => {
+
               row[wheelLastKey(wheel)] = "0";
+
               row[wheelCurrentKey(wheel)] = "0";
+
             });
+
             return row;
+
           });
+
+
 
           return toCSV(rows);
+
         };
 
+
+
         const toFingerprint = (text) =>
+
           `${text.length}:${text.slice(0, 120)}:${text.slice(-120)}`;
 
+
+
         try {
+
           const rawUrl1 = `${GITHUB_RAW_CSV_URL}?t=${Date.now()}`;
+
           const rawResponse1 = await fetch(rawUrl1, {
+
             method: "GET",
+
             cache: "reload",
+
             headers: { "Cache-Control": "no-cache" }
+
           });
 
+
+
           if (rawResponse1.ok) {
+
             const rawText1 = await rawResponse1.text();
+
             if (isValidCsv(rawText1)) {
+
               csvText = rawText1;
+
               sourceUsed = "raw.githubusercontent";
+
             }
+
           }
+
+
 
           if (csvText) {
+
             const fp1 = toFingerprint(csvText);
+
             if (lastLoadedCsvFingerprint && fp1 === lastLoadedCsvFingerprint) {
+
               const rawUrl2 = `${GITHUB_RAW_CSV_URL}?t=${Date.now()}&v=${performance.now()}`;
+
               const rawResponse2 = await fetch(rawUrl2, {
+
                 method: "GET",
+
                 cache: "reload",
+
                 headers: { "Cache-Control": "no-cache" }
+
               });
+
               if (rawResponse2.ok) {
+
                 const rawText2 = await rawResponse2.text();
+
                 if (isValidCsv(rawText2)) {
+
                   csvText = rawText2;
+
                   sourceUsed = "raw.githubusercontent (forced refresh)";
+
                 }
+
               }
+
             }
+
           }
+
         } catch (_) {}
 
+
+
         if (!csvText) {
+
           if (!token) {
+
             csvText = buildDefaultCsv();
+
             sourceUsed = "Generated default CSV (no token / empty remote CSV)";
+
           } else {
+
             const meta = await getCurrentGithubFileMeta(token);
+
             if (meta && meta.content) {
+
               csvText = base64ToUtf8(meta.content);
+
               loadedSha = String(meta.sha || "");
+
               sourceUsed = "GitHub Contents API";
+
             } else if (meta && meta.download_url) {
+
               const response = await fetch(`${meta.download_url}?t=${Date.now()}`, { cache: "reload" });
+
               if (response.ok) {
+
                 csvText = await response.text();
+
                 loadedSha = String(meta.sha || "");
+
                 sourceUsed = "GitHub download_url";
+
               }
+
             }
+
+
 
             if (!isValidCsv(csvText)) {
+
               csvText = buildDefaultCsv();
+
               sourceUsed = "Generated default CSV (remote CSV empty/invalid)";
+
             }
+
           }
+
         }
 
+
+
         if (!isValidCsv(csvText)) {
+
           csvText = buildDefaultCsv();
+
           sourceUsed = "Generated default CSV (safety fallback)";
+
         }
+
+
 
         lastLoadedCsvFingerprint = toFingerprint(csvText);
 
+
+
         csvRows = parseCSV(csvText);
+
         const totalCycles = extractWheelCycleTotals(csvRows);
+
         renderLastCycleCounts(totalCycles);
+
+
 
         const shaInfo = loadedSha
+
           ? `file sha: ${loadedSha.slice(0, 7)}`
+
           : "file sha: n/a (public source)";
+
         const commitInfo = latestCommit ? ` | latest main commit: ${latestCommit.slice(0, 7)}` : "";
+
         saveStatus.textContent = `Latest CSV loaded from ${sourceUsed || "public source"} (${shaInfo}${commitInfo})`;
+
         saveStatus.style.color = "#0a7a2f";
+
+
 
         resetCurrentDayCycleInputs();
+
+        updateMainTableSeverityColors();
+
         alert('Load completed. "Number of cycle of the current day Wheel 1..4" values were reset to 0.');
+
       } catch (error) {
+
         saveStatus.textContent = `Load error: ${error.message}.`;
+
         saveStatus.style.color = "#b00020";
+
       }
+
     }
+
+
 
     async function saveWeeklyDataToGitHub() {
+
       try {
+
         const token = ((document.getElementById("githubToken")?.value || "").trim()) || HARDCODED_GITHUB_TOKEN;
+
         if (!token) {
+
           throw new Error("Save requires GitHub token (repo contents write permission).");
+
         }
+
         if (!/^github_pat_|^ghp_/.test(token)) {
+
           throw new Error("Token format looks invalid. Use a GitHub PAT with repository contents write access.");
+
         }
+
+
 
         saveStatus.textContent = "Preparing updated CSV...";
+
         saveStatus.style.color = "#333";
 
+
+
         if (!csvRows || csvRows.length === 0) {
+
           await loadFromGitHub();
+
         }
+
+
 
         const now = new Date();
+
         const dateStr = now.toISOString().split("T")[0];
-        const weekNumber = getWeekNumber(now);
-        const year = now.getFullYear();
+
+        const weekNumber = String(getWeekNumber(now));
+
+        const year = String(now.getFullYear());
+
+
 
         const newRows = aircraftData.map((item) => {
+
           const row = {
+
             Date: dateStr,
-            Year: String(year),
-            Week: String(weekNumber),
+
+            Year: year,
+
+            Week: weekNumber,
+
             Aircraft: item.ac,
+
             "AC-Type": item.type
+
           };
 
+
+
           WHEEL_NUMBERS.forEach((wheel) => {
+
             const input = document.querySelector(`.cycle-input[data-aircraft="${item.ac}"][data-wheel="${wheel}"]`);
-            row[wheelCurrentKey(wheel)] = String(Number(input?.value || 0));
+
+            row[wheelCurrentKey(wheel)] = String(parseIntegerCycleValue(input?.value) ?? 0);
+
             row[wheelLastKey(wheel)] = "0";
+
           });
 
+
+
           return row;
+
         });
 
-        const merged = [...csvRows, ...newRows];
-        const contentCsv = toCSV(merged);
-        const contentBase64 = textToBase64(contentCsv);
 
-        saveStatus.textContent = "Pushing CSV update to GitHub...";
-        const meta = await getCurrentGithubFileMeta(token);
 
-        const putBody = {
-          message: `Update aircraft cycles CSV (${new Date().toISOString()})`,
-          content: contentBase64,
-          sha: meta.sha,
-          branch: BRANCH
+        const newRowsByAircraft = {};
+
+        newRows.forEach((r) => {
+
+          newRowsByAircraft[normalizeAircraft(r.Aircraft)] = r;
+
+        });
+
+
+
+        const merged = [];
+
+        const replacedAircraft = new Set();
+
+
+
+        const sanitizeRow = (row) => {
+
+          const clean = { ...row };
+
+          WHEEL_NUMBERS.forEach((wheel) => {
+
+            const currentKey = wheelCurrentKey(wheel);
+
+            const lastKey = wheelLastKey(wheel);
+
+            const normalizedCurrent = parseIntegerCycleValue(clean[currentKey]);
+
+            clean[currentKey] = String(normalizedCurrent ?? 0);
+
+            clean[lastKey] = "0";
+
+          });
+
+          return clean;
+
         };
 
-        const putResponse = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`, {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/vnd.github+json",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(putBody)
+
+
+        (csvRows || []).forEach((row) => {
+
+          const rowAircraft = normalizeAircraft(row.Aircraft ?? row["A/C"] ?? row.ac ?? "");
+
+          const rowWeek = String(row.Week ?? "").trim();
+
+          const rowYear = String(row.Year ?? "").trim();
+
+
+
+          if (rowWeek === weekNumber && rowYear === year && rowAircraft in newRowsByAircraft) {
+
+            if (!replacedAircraft.has(rowAircraft)) {
+
+              merged.push(sanitizeRow(newRowsByAircraft[rowAircraft]));
+
+              replacedAircraft.add(rowAircraft);
+
+            }
+
+          } else {
+
+            merged.push(sanitizeRow(row));
+
+          }
+
         });
 
+
+
+        Object.keys(newRowsByAircraft).forEach((ac) => {
+
+          if (!replacedAircraft.has(ac)) {
+
+            merged.push(sanitizeRow(newRowsByAircraft[ac]));
+
+          }
+
+        });
+
+
+
+        const contentCsv = toCSV(merged);
+
+        const contentBase64 = textToBase64(contentCsv);
+
+
+
+        saveStatus.textContent = "Pushing CSV update to GitHub...";
+
+        const meta = await getCurrentGithubFileMeta(token);
+
+
+
+        const putBody = {
+
+          message: `Update aircraft cycles CSV (${new Date().toISOString()})`,
+
+          content: contentBase64,
+
+          sha: meta.sha,
+
+          branch: BRANCH
+
+        };
+
+
+
+        const putResponse = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`, {
+
+          method: "PUT",
+
+          headers: {
+
+            Authorization: `Bearer ${token}`,
+
+            Accept: "application/vnd.github+json",
+
+            "Content-Type": "application/json"
+
+          },
+
+          body: JSON.stringify(putBody)
+
+        });
+
+
+
         if (!putResponse.ok) {
+
           const errText = await putResponse.text();
+
           if (putResponse.status === 401) {
+
             throw new Error("Unauthorized (401): invalid/expired token.");
+
           }
+
           if (putResponse.status === 403) {
+
             throw new Error("Forbidden (403): token lacks repository contents write permission.");
+
           }
+
           throw new Error(`GitHub save failed (${putResponse.status}): ${errText}`);
+
         }
 
+
+
         csvRows = merged;
+
         const totalCycles = extractWheelCycleTotals(csvRows);
+
         renderLastCycleCounts(totalCycles);
 
-        saveStatus.textContent = `Saved ${newRows.length} rows to GitHub data.csv successfully.`;
+
+
+        saveStatus.textContent = `Saved ${newRows.length} rows to GitHub data.csv successfully (upserted current week).`;
+
         saveStatus.style.color = "#0a7a2f";
+
+        updateMainTableSeverityColors();
+
       } catch (error) {
+
         saveStatus.textContent = `Save error: ${error.message}`;
+
         saveStatus.style.color = "#b00020";
+
       }
+
     }
 
+
+
     aircraftData.forEach((item) => {
+
       const row = document.createElement("tr");
+
       row.innerHTML = `
+
         <td><strong>${item.ac}</strong></td>
+
         <td><span class="badge">${item.type}</span></td>
+
         <td><span class="badge" data-last-cycle="${item.ac}" data-wheel="1">-</span></td>
+
         <td><span class="badge" data-last-cycle="${item.ac}" data-wheel="2">-</span></td>
+
         <td><span class="badge" data-last-cycle="${item.ac}" data-wheel="3">-</span></td>
+
         <td><span class="badge" data-last-cycle="${item.ac}" data-wheel="4">-</span></td>
+
         <td>
-          <input class="cycle-input" type="number" min="0" step="1" value="0" data-aircraft="${item.ac}" data-wheel="1" aria-label="Number of cycle of the current day Wheel 1 for ${item.ac}" />
+
+          <div class="wheel-cell">
+
+            <input class="cycle-input" type="number" min="0" step="1" value="0" data-aircraft="${item.ac}" data-wheel="1" aria-label="Number of cycle of the current day Wheel 1 for ${item.ac}" />
+
+            <button class="btn-wheel-reset" type="button" data-reset-aircraft="${item.ac}" data-reset-wheel="1">Reset W1</button>
+
+          </div>
+
         </td>
+
         <td>
-          <input class="cycle-input" type="number" min="0" step="1" value="0" data-aircraft="${item.ac}" data-wheel="2" aria-label="Number of cycle of the current day Wheel 2 for ${item.ac}" />
+
+          <div class="wheel-cell">
+
+            <input class="cycle-input" type="number" min="0" step="1" value="0" data-aircraft="${item.ac}" data-wheel="2" aria-label="Number of cycle of the current day Wheel 2 for ${item.ac}" />
+
+            <button class="btn-wheel-reset" type="button" data-reset-aircraft="${item.ac}" data-reset-wheel="2">Reset W2</button>
+
+          </div>
+
         </td>
+
         <td>
-          <input class="cycle-input" type="number" min="0" step="1" value="0" data-aircraft="${item.ac}" data-wheel="3" aria-label="Number of cycle of the current day Wheel 3 for ${item.ac}" />
+
+          <div class="wheel-cell">
+
+            <input class="cycle-input" type="number" min="0" step="1" value="0" data-aircraft="${item.ac}" data-wheel="3" aria-label="Number of cycle of the current day Wheel 3 for ${item.ac}" />
+
+            <button class="btn-wheel-reset" type="button" data-reset-aircraft="${item.ac}" data-reset-wheel="3">Reset W3</button>
+
+          </div>
+
         </td>
+
         <td>
-          <input class="cycle-input" type="number" min="0" step="1" value="0" data-aircraft="${item.ac}" data-wheel="4" aria-label="Number of cycle of the current day Wheel 4 for ${item.ac}" />
+
+          <div class="wheel-cell">
+
+            <input class="cycle-input" type="number" min="0" step="1" value="0" data-aircraft="${item.ac}" data-wheel="4" aria-label="Number of cycle of the current day Wheel 4 for ${item.ac}" />
+
+            <button class="btn-wheel-reset" type="button" data-reset-aircraft="${item.ac}" data-reset-wheel="4">Reset W4</button>
+
+          </div>
+
         </td>
+
       `;
+
       tableBody.appendChild(row);
+
     });
+
+
 
     totalCount.textContent = aircraftData.length;
 
+
+
+    document.addEventListener("click", (event) => {
+
+      const btn = event.target.closest(".btn-wheel-reset");
+
+      if (!btn) return;
+
+      const aircraft = btn.getAttribute("data-reset-aircraft");
+
+      const wheel = btn.getAttribute("data-reset-wheel");
+
+      resetSingleAircraftWheel(aircraft, wheel);
+
+    });
+
+
+
     loadGithubBtn.addEventListener("click", loadFromGitHub);
+
     saveGithubBtn.addEventListener("click", saveWeeklyDataToGitHub);
+
     analyzeBtn.addEventListener("click", openAnalysisModal);
+
     analyzeWheelsBtn.addEventListener("click", openWheelsAnalysisModal);
-    resetBtn.addEventListener("click", resetLastCycleCountsToZero);
+
+    resetBtn.addEventListener("click", () => {
+
+      resetLastCycleCountsToZero();
+
+      updateMainTableSeverityColors();
+
+    });
+
+    downloadPdfBtn.addEventListener("click", downloadReportPdf);
+
     sendReportsBtn.addEventListener("click", sendReportsByEmailDraft);
+
     analysisModalCloseBtn.addEventListener("click", closeAnalysisModal);
+
     wheelsModalCloseBtn.addEventListener("click", closeWheelsAnalysisModal);
 
+
+
     analysisModalOverlay.addEventListener("click", (event) => {
+
       if (event.target === analysisModalOverlay) {
+
         closeAnalysisModal();
+
       }
+
     });
+
+
 
     wheelsModalOverlay.addEventListener("click", (event) => {
+
       if (event.target === wheelsModalOverlay) {
+
         closeWheelsAnalysisModal();
+
       }
+
     });
+
+
 
     document.addEventListener("keydown", (event) => {
+
       if (event.key === "Escape") {
+
         closeAnalysisModal();
+
         closeWheelsAnalysisModal();
+
       }
+
     });
 
-    loadFromGitHub();
+
+
+    function enterApplication() {
+
+      const username = (usernameInput?.value || "").trim();
+
+      if (!username) {
+
+        landingError.textContent = "Please enter a username.";
+
+        return;
+
+      }
+
+
+
+      landingError.textContent = "";
+
+      welcomeUser.textContent = `Welcome, ${username}`;
+
+      landingPage.classList.add("hidden");
+
+      appRoot.classList.remove("hidden");
+
+      loadFromGitHub();
+
+      updateMainTableSeverityColors();
+
+    }
+
+
+
+    enterAppBtn.addEventListener("click", enterApplication);
+
+    usernameInput.addEventListener("keydown", (event) => {
+
+      if (event.key === "Enter") {
+
+        enterApplication();
+
+      }
+
+    });
+
   </script>
+
 </body>
+
 </html>
+
