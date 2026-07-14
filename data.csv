@@ -1,5 +1,5 @@
 Date,Year,Week,Aircraft,AC-Type,Last cycle count Wheel 1,Last cycle count Wheel 2,Last cycle count Wheel 3,Last cycle count Wheel 4,Number of cycle of the current day Wheel 1,Number of cycle of the current day Wheel 2,Number of cycle of the current day Wheel 3,Number of cycle of the current day Wheel 4
-2026-07-14,2026,29,CN-NMH,A320,0,0,0,0,0,0,0,0
+2026-07-14,2026,29,CN-NMH,A320,0,0,0,0,300,600,1500,2000
 2026-07-14,2026,29,CN-NMI,A320,0,0,0,0,0,0,0,0
 2026-07-14,2026,29,CN-NMJ,A320,0,0,0,0,0,0,0,0
 2026-07-14,2026,29,CN-NML,A320,0,0,0,0,0,0,0,0
